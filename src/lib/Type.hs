@@ -1232,7 +1232,8 @@ isSingletonType topTy =
   where
     checkIsSingleton :: Type n -> Maybe ()
     checkIsSingleton ty = case ty of
-      Pi (PiType _ _ body) -> checkIsSingleton body
+      Pi (PiType _ Pure body) -> checkIsSingleton body
+      TabPi (TabPiType _ body) -> checkIsSingleton body
       StaticRecordTy items -> mapM_ checkIsSingleton items
       TC con -> case con of
         ProdType tys -> mapM_ checkIsSingleton tys
@@ -1249,6 +1250,10 @@ singletonTypeVal'
   :: (MonadFail2 m, SubstReader Name m, EnvReader2 m, EnvExtender2 m)
   => Type i -> m i o (Atom o)
 singletonTypeVal' ty = case ty of
+  Pi (PiType b Pure body) ->
+    substBinders b \(PiBinder b' ty' arr) -> do
+      body' <- singletonTypeVal' body
+      return $ Lam $ LamExpr (LamBinder b' ty' arr Pure) $ AtomicBlock body'
   TabPi (TabPiType b body) ->
     substBinders b \b' -> do
       body' <- singletonTypeVal' body

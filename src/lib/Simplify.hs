@@ -29,6 +29,7 @@ import MTL1
 import Builder
 import Syntax
 import Type
+import TypeQuery
 import Util (enumerate, foldMapM, restructure)
 import CheapReduction
 import Linearize
@@ -120,7 +121,17 @@ simpDeclsSubst !s = \case
     simpDeclsSubst (s <>> (b@>SubstVal x)) rest
 
 simplifyExpr :: Emits o => Expr i -> SimplifyM i o (Atom o)
-simplifyExpr expr = confuseGHC >>= \_ -> case expr of
+simplifyExpr expr = do
+  ty <- getTypeSubst expr
+  singletonTypeVal ty >>= \case
+    Nothing -> simplifyExpr' expr
+    Just val -> effectsSubstE expr >>= \case
+      Pure -> return val
+      _ -> do void $ simplifyExpr' expr  -- Produce the emissions for their effects
+              return val
+
+simplifyExpr' :: Emits o => Expr i -> SimplifyM i o (Atom o)
+simplifyExpr' expr = confuseGHC >>= \_ -> case expr of
   App f xs -> do
     xs' <- mapM simplifyAtom xs
     simplifyApp f xs'

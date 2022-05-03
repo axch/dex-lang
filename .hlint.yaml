@@ -1,2 +1,5 @@
 - arguments: [--color]
 - ignore: {name: "Use fmap"}
+- ignore: {name: "Use >>"}
+- ignore: {name: "Use record patterns"}
+- ignore: {name: "Eta reduce"}

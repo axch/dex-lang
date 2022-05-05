@@ -36,6 +36,7 @@ import LabeledItems
 
 import Err
 import Util (forMZipped, forMZipped_, iota)
+import TypeQuery (getTypeSubst)
 
 import CheapReduction
 import {-# SOURCE #-} Interpreter
@@ -65,15 +66,6 @@ getTabAppType f xs = case nonEmpty xs of
   Nothing -> getType f
   Just xs' -> liftHardFailTyperT $ checkTabApp f xs'
 {-# INLINE getTabAppType #-}
-
-getTypeSubst :: (SubstReader Name m, EnvReader2 m, HasType e)
-             => e i -> m i o (Type o)
-getTypeSubst e = do
-  subst <- getSubst
-  liftM runHardFail $ liftEnvReaderT $
-    runSubstReaderT subst $
-      runTyperT' $ getTypeE e
-{-# INLINE getTypeSubst #-}
 
 tryGetType :: (EnvReader m, Fallible1 m, HasType e) => e n -> m n (Type n)
 tryGetType e = liftExcept =<< liftTyperT (getTypeE e)
@@ -491,11 +483,12 @@ instance HasType Atom where
           def <- lookupDataDef defName
           [DataConDef _ (Abs bs' UnitE)] <- checkedApplyDataDefParams def params
           PairB bsInit (Nest (_:>bTy) _) <- return $ splitNestAt i bs'
-          -- `ty` can depends on earlier binders from this constructor. Rewrite
+          -- `ty` can depend on earlier binders from this constructor. Rewrite
           -- it to also use projections.
           dropSubst $
-            applyNaryAbs (Abs bsInit bTy) [ SubstVal (ProjectElt (j NE.:| is) v')
-                                          | j <- iota $ nestLength bsInit]
+            applyNaryAbs (Abs bsInit bTy)
+              [ SubstVal (ProjectElt (j NE.:| is) v')
+              | j <- iota $ nestLength bsInit]
         StaticRecordTy types -> return $ toList types !! i
         RecordTy _ -> throw CompilerErr "Can't project partially-known records"
         ProdTy xs -> return $ xs !! i

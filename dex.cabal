@@ -76,6 +76,7 @@ library
                      , TopLevel
                      , Transpose
                      , Type
+                     , TypeQuery
                      , Types.Core
                      , Types.Imp
                      , Types.Primitives

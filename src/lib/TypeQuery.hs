@@ -1,9 +1,10 @@
-module TypeQuery (getTypeSubst) where
+module TypeQuery (getTypeSubst, effectsE, effectsSubstE) where
 
 import Control.Monad
 import Data.Foldable (toList)
 import qualified Data.List.NonEmpty as NE
 import qualified Data.Map.Strict as M
+import qualified Data.Set        as S
 
 import CheapReduction (cheapNormalize)
 import Err
@@ -539,4 +540,109 @@ instance HasQueryableType Block where
   getTypeE (Block NoBlockAnn Empty result) = getTypeE result
   getTypeE (Block (BlockAnn ty _) _ _) = substM ty
   getTypeE _ = error "impossible"
+
+-- === querying effects ===
+
+effectsE :: (EnvReader m, HasEffectsE e) => e n -> m n (EffectRow n)
+effectsE e = liftEnvReaderM $ runSubstReaderT idSubst $
+  runTypeQueryM' $ effectsEImpl e
+{-# INLINE effectsE #-}
+
+effectsSubstE :: (EnvReader2 m, SubstReader AtomSubstVal m, HasEffectsE e)
+              => e i -> m i o (EffectRow o)
+effectsSubstE e = do
+  subst <- getSubst
+  liftEnvReaderM $
+    runSubstReaderT subst $
+      runTypeQueryM' $ effectsEImpl e
+{-# INLINE effectsSubstE #-}
+
+class HasEffectsE (e::E) where
+  effectsEImpl :: e i -> TypeQueryM i o (EffectRow o)
+
+instance HasEffectsE Expr where
+  effectsEImpl = exprEffects
+  {-# INLINE effectsEImpl #-}
+
+exprEffects :: Expr i -> TypeQueryM i o (EffectRow o)
+exprEffects expr = case expr of
+  Atom _  -> return Pure
+  App f xs -> do
+    fTy <- getTypeSubst f
+    case fromNaryPiType (length xs) fTy of
+      Just (NaryPiType bs effs _) -> do
+        xs' <- mapM substM xs
+        let subst = bs @@> fmap SubstVal xs'
+        applySubst subst effs
+      Nothing -> error $
+        "Not a " ++ show (length xs + 1) ++ "-argument pi type: " ++ pprint expr
+  TabApp _ _ -> return Pure
+  Op op   -> case op of
+    PrimEffect ref m -> do
+      getTypeSubst ref >>= \case
+        RefTy (Var h) _ ->
+          return $ case m of
+            MGet      -> oneEffect (RWSEffect State  $ Just h)
+            MPut    _ -> oneEffect (RWSEffect State  $ Just h)
+            MAsk      -> oneEffect (RWSEffect Reader $ Just h)
+            -- XXX: We don't verify the base monoid. See note about RunWriter.
+            MExtend _ _ -> oneEffect (RWSEffect Writer $ Just h)
+        _ -> error "References must have reference type"
+    ThrowException _ -> return $ oneEffect ExceptionEffect
+    IOAlloc  _ _  -> return $ oneEffect IOEffect
+    IOFree   _    -> return $ oneEffect IOEffect
+    PtrLoad  _    -> return $ oneEffect IOEffect
+    PtrStore _ _  -> return $ oneEffect IOEffect
+    _ -> return Pure
+  Hof hof -> case hof of
+    For _ f         -> functionEffs f
+    -- The tiled and scalar bodies should have the same effects, but
+    -- that's checked elsewhere.  If they are the same, merging them
+    -- with <> is a noop.
+    Tile _ tiled scalar -> liftM2 (<>) (functionEffs tiled) $ functionEffs scalar
+    While body      -> functionEffs body
+    Linearize _     -> return Pure  -- Body has to be a pure function
+    Transpose _     -> return Pure  -- Body has to be a pure function
+    RunWriter _ f -> rwsFunEffects Writer f
+    RunReader _ f -> rwsFunEffects Reader f
+    RunState  _ f -> rwsFunEffects State  f
+    PTileReduce _ _ _ -> return mempty
+    RunIO f -> do
+      effs <- functionEffs f
+      return $ deleteEff IOEffect effs
+    CatchException f -> do
+      effs <- functionEffs f
+      return $ deleteEff ExceptionEffect effs
+  Case _ _ _ effs -> substM effs
+
+instance HasEffectsE Block where
+  effectsEImpl (Block (BlockAnn _ effs) _ _) = substM effs
+  effectsEImpl (Block NoBlockAnn _ _) = return Pure
+  {-# INLINE effectsEImpl #-}
+
+instance HasEffectsE Alt where
+  effectsEImpl (Abs bs body) =
+    substBinders bs \bs' ->
+      ignoreHoistFailure . hoist bs' <$> effectsEImpl body
+  {-# INLINE effectsEImpl #-}
+
+functionEffs :: Atom i -> TypeQueryM i o (EffectRow o)
+functionEffs f = getTypeSubst f >>= \case
+  Pi (PiType b effs _) -> return $ ignoreHoistFailure $ hoist b effs
+  _ -> error "Expected a function type"
+
+rwsFunEffects :: RWS -> Atom i -> TypeQueryM i o (EffectRow o)
+rwsFunEffects rws f = getTypeSubst f >>= \case
+   BinaryFunTy h ref effs _ -> do
+     let effs' = ignoreHoistFailure $ hoist ref effs
+     let effs'' = deleteEff (RWSEffect rws (Just (binderName h))) effs'
+     return $ ignoreHoistFailure $ hoist h effs''
+   _ -> error "Expected a binary function type"
+
+deleteEff :: Effect n -> EffectRow n -> EffectRow n
+deleteEff eff (EffectRow effs t) = EffectRow (S.delete eff effs) t
+
+-- TODO Dedup with Type.hs
+oneEffect :: Effect n -> EffectRow n
+oneEffect eff = EffectRow (S.singleton eff) Nothing
 

@@ -123,7 +123,7 @@ substExprIfNonlin expr =
     True -> return Nothing
     False -> do
       expr' <- substNonlin expr
-      exprEffects expr' >>= isLinEff >>= \case
+      effectsE expr' >>= isLinEff >>= \case
         True -> return Nothing
         False -> return $ Just expr'
 

@@ -17,7 +17,7 @@ module Type (
   oneEffect, lamExprTy, isData, asFirstOrderFunction, asFFIFunType,
   isSingletonType, singletonTypeVal, asNaryPiType,
   numNaryPiArgs, naryLamExprType, getMethodIndex,
-  extendEffect, effectsE, exprEffects, declNestEffects,
+  extendEffect, effectsE, declNestEffects,
   computeAbsEffects, getReferentTy) where
 
 import Prelude hiding (id)
@@ -36,7 +36,7 @@ import LabeledItems
 
 import Err
 import Util (forMZipped, forMZipped_, iota)
-import TypeQuery (getTypeSubst)
+import TypeQuery (getTypeSubst, effectsE)
 
 import CheapReduction
 import {-# SOURCE #-} Interpreter
@@ -110,96 +110,6 @@ getClassTy (ClassDef _ _ bs _ _) = go bs
     go Empty = TyKind
     go (Nest (b:>ty) rest) = Pi $ PiType (PiBinder b ty PlainArrow) Pure $ go rest
 
--- === querying effects ===
-
-class HasEffectsE (e::E) where
-  effectsEImpl :: e n -> EnvReaderM n (EffectRow n)
-
-effectsE :: (EnvReader m, HasEffectsE e) => e n -> m n (EffectRow n)
-effectsE = liftEnvReaderM . effectsEImpl
-{-# INLINE effectsE #-}
-
-instance HasEffectsE Expr where
-  effectsEImpl = exprEffects
-  {-# INLINE effectsEImpl #-}
-
-exprEffects :: (EnvReader m) => Expr n -> m n (EffectRow n)
-exprEffects expr = case expr of
-  Atom _  -> return Pure
-  App f xs -> do
-    fTy <- getType f
-    case fromNaryPiType (length xs) fTy of
-      Just (NaryPiType bs effs _) -> do
-        let subst = bs @@> fmap SubstVal xs
-        applySubst subst effs
-      Nothing -> error $
-        "Not a " ++ show (length xs + 1) ++ "-argument pi type: " ++ pprint expr
-  TabApp _ _ -> return Pure
-  Op op   -> case op of
-    PrimEffect ref m -> do
-      getType ref >>= \case
-        RefTy (Var h) _ ->
-          return $ case m of
-            MGet      -> oneEffect (RWSEffect State  $ Just h)
-            MPut    _ -> oneEffect (RWSEffect State  $ Just h)
-            MAsk      -> oneEffect (RWSEffect Reader $ Just h)
-            -- XXX: We don't verify the base monoid. See note about RunWriter.
-            MExtend _ _ -> oneEffect (RWSEffect Writer $ Just h)
-        _ -> error "References must have reference type"
-    ThrowException _ -> return $ oneEffect ExceptionEffect
-    IOAlloc  _ _  -> return $ oneEffect IOEffect
-    IOFree   _    -> return $ oneEffect IOEffect
-    PtrLoad  _    -> return $ oneEffect IOEffect
-    PtrStore _ _  -> return $ oneEffect IOEffect
-    _ -> return Pure
-  Hof hof -> case hof of
-    For _ f         -> functionEffs f
-    -- The tiled and scalar bodies should have the same effects, but
-    -- that's checked elsewhere.  If they are the same, merging them
-    -- with <> is a noop.
-    Tile _ tiled scalar -> liftM2 (<>) (functionEffs tiled) $ functionEffs scalar
-    While body      -> functionEffs body
-    Linearize _     -> return Pure  -- Body has to be a pure function
-    Transpose _     -> return Pure  -- Body has to be a pure function
-    RunWriter _ f -> rwsFunEffects Writer f
-    RunReader _ f -> rwsFunEffects Reader f
-    RunState  _ f -> rwsFunEffects State  f
-    PTileReduce _ _ _ -> return mempty
-    RunIO f -> do
-      effs <- functionEffs f
-      return $ deleteEff IOEffect effs
-    CatchException f -> do
-      effs <- functionEffs f
-      return $ deleteEff ExceptionEffect effs
-  Case _ _ _ effs -> return effs
-{-# SPECIALIZE exprEffects :: Expr n -> EnvReaderM n (EffectRow n) #-}
-
-instance HasEffectsE Block where
-  effectsEImpl (Block (BlockAnn _ effs) _ _) = return effs
-  effectsEImpl (Block NoBlockAnn _ _) = return Pure
-  {-# INLINE effectsEImpl #-}
-
-instance HasEffectsE Alt where
-  effectsEImpl alt = refreshAbs alt \xs blk ->
-    ignoreHoistFailure . hoist xs <$> effectsEImpl blk
-  {-# INLINE effectsEImpl #-}
-
-functionEffs :: EnvReader m => Atom n -> m n (EffectRow n)
-functionEffs f = getType f >>= \case
-  Pi (PiType b effs _) -> return $ ignoreHoistFailure $ hoist b effs
-  _ -> error "Expected a function type"
-
-rwsFunEffects :: EnvReader m => RWS -> Atom n -> m n (EffectRow n)
-rwsFunEffects rws f = getType f >>= \case
-   BinaryFunTy h ref effs _ -> do
-     let effs' = ignoreHoistFailure $ hoist ref effs
-     let effs'' = deleteEff (RWSEffect rws (Just (binderName h))) effs'
-     return $ ignoreHoistFailure $ hoist h effs''
-   _ -> error "Expected a binary function type"
-
-deleteEff :: Effect n -> EffectRow n -> EffectRow n
-deleteEff eff (EffectRow effs t) = EffectRow (S.delete eff effs) t
-
 -- === computing effects ===
 
 computeAbsEffects :: (EnvExtender m, SubstE Name e)
@@ -217,7 +127,7 @@ declNestEffectsRec :: Nest Decl n l -> EffectRow l -> EnvReaderM l (EffectRow l)
 declNestEffectsRec Empty !acc = return acc
 declNestEffectsRec n@(Nest decl rest) !acc = withExtEvidence n do
   expr <- sinkM $ declExpr decl
-  deff <- exprEffects expr
+  deff <- effectsE expr
   acc' <- sinkM $ acc <> deff
   declNestEffectsRec rest acc'
   where

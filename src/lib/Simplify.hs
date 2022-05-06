@@ -701,7 +701,7 @@ exceptToMaybeExpr expr = case expr of
 
 hasExceptions :: (EnvReader m, MonadFail1 m) => Expr n -> m n Bool
 hasExceptions expr = do
-  (EffectRow effs t) <- exprEffects expr
+  (EffectRow effs t) <- effectsE expr
   case t of
     Nothing -> return $ ExceptionEffect `S.member` effs
     Just _  -> error "Shouldn't have tail left"

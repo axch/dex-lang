@@ -300,43 +300,42 @@ function render(renderMode) {
         };
     }
 }
-render(RENDER_MODE.STATIC);"></script></head><body><div id="main-output"><div class="cell"><div class="code-block"></div></div><div class="cell"><div class="prose-block"><h3>PSD solver based on Cholesky decomposition</h3>
-</div></div><div class="cell"><div class="code-block"><span class="keyword">import</span> linalg
+render(RENDER_MODE.STATIC);"></script></head><body><div id="main-output"><div class="cell"><div class="code-block"></div></div><div class="cell"><div class="prose-block"><h1>$\href{https://katex.org/}{\KaTeX}$ rendering examples</h1>
+</div></div><div class="cell"><div class="prose-block"><p>This document demonstrates $\KaTeX$ rendering in literate Dex programs.</p>
+</div></div><div class="cell"><div class="prose-block"><h2>Random examples</h2>
+</div></div><div class="cell"><div class="prose-block"><p>$$\text{This is a multiline equation:} \\ \textbf{A}\textbf{x} = \textbf{b}$$</p>
+</div></div><div class="cell"><div class="prose-block"><p>$$f(\relax{x}) = \int_{-\infty}^\infty \hat{f}(\xi),e^{2 \pi i \xi x} ,d\xi$$</p>
+</div></div><div class="cell"><div class="prose-block"><h2><a href="https://katex.org/docs/supported.html#environments">Environments</a></h2>
+</div></div><div class="cell"><div class="prose-block"><p>$$\begin{matrix} a &amp; b \\ c &amp; d \end{matrix}$$</p>
+</div></div><div class="cell"><div class="prose-block"><p>$$\begin{pmatrix} a &amp; b \\ c &amp; d \end{pmatrix}$$</p>
+</div></div><div class="cell"><div class="prose-block"><p>$$\begin{bmatrix} a &amp; b \\ c &amp; d \end{bmatrix}$$</p>
+</div></div><div class="cell"><div class="prose-block"><p>$$\def\arraystretch{1.5} \begin{array}{c:c:c} a &amp; b &amp; c \\ \hline d &amp; e &amp; f \\ \hdashline g &amp; h &amp; i \end{array}$$</p>
+</div></div><div class="cell"><div class="prose-block"><p>$$\begin{aligned} a&amp;=b+c \\ d+e&amp;=f \end{aligned}$$</p>
+</div></div><div class="cell"><div class="prose-block"><p>$$\begin{alignedat}{2} 10&amp;x+ &amp;3&amp;y = 2 \\ 3&amp;x+&amp;13&amp;y = 4 \end{alignedat}$$</p>
+</div></div><div class="cell"><div class="prose-block"><p>$$\begin{gathered} a=b \\ e=b+c \end{gathered}$$</p>
+</div></div><div class="cell"><div class="prose-block"><p>$$x = \begin{cases} a &amp;\text{if } b \\ c &amp;\text{if } d \end{cases}$$</p>
+</div></div><div class="cell"><div class="prose-block"><p>$$\begin{rcases} a &amp;\text{if } b \\ c &amp;\text{if } d \end{rcases} \Rightarrow \dots$$</p>
+</div></div><div class="cell"><div class="prose-block"><h2>No LaTeX rendering in non-prose-blocks</h2>
+</div></div><div class="cell"><div class="prose-block"><p>LaTeX rendering should not occur in code blocks, nor in error output cells.</p>
+</div></div><div class="cell"><div class="code-block"><span class="keyword">def</span> array_sum {a} (x<span class="command">:a</span><span class="symbol">=&gt;</span><span class="type-name">Int32</span>) <span class="symbol">:</span> <span class="type-name">Int32</span> <span class="symbol">=</span>
+  <span class="comment">-- Note: the following line has `$ ... $`, but it should not trigger KaTeX.
+</span>  <span class="comment">-- Note: the incorrect usage of `with_state` below is intentional to verify
+</span>  <span class="comment">--       that `$ ... $` is not rendered as LaTeX in error output cells.
+</span>  snd <span class="symbol">$</span> with_state 0 <span class="symbol">$</span> <span class="symbol">\</span>acc<span class="symbol">.</span>
+    <span class="keyword">for</span> i<span class="symbol">.</span>
+      acc <span class="symbol">:=</span> (get acc) <span class="symbol">+</span> x<span class="symbol">.</span>i
+</div><div class="err-block">Type error:
+Expected: (a.1 &amp; b)
+  Actual: (a =&gt; Unit)
+(Solving for: [a.1, b])
+
+  snd $ with_state 0 $ \acc.
+        ^^^^^^^^^^^^^^^^^^^^^
 </div></div><div class="cell"><div class="code-block">
-</div></div><div class="cell"><div class="code-block"><span class="keyword">def</span> psdsolve {n} (mat<span class="command">:n</span><span class="symbol">=&gt;</span>n<span class="symbol">=&gt;</span><span class="type-name">Float</span>) (b<span class="command">:n</span><span class="symbol">=&gt;</span><span class="type-name">Float</span>) <span class="symbol">:</span> n<span class="symbol">=&gt;</span><span class="type-name">Float</span> <span class="symbol">=</span>
-  l <span class="symbol">=</span> chol mat
-  b&#39; <span class="symbol">=</span> forward_substitute l b
-  u <span class="symbol">=</span> transpose_lower_to_upper l
-  backward_substitute u b&#39;
-</div></div><div class="cell"><div class="code-block">
-</div></div><div class="cell"><div class="prose-block"><p>Test</p>
-</div></div><div class="cell"><div class="code-block"><span class="type-name">N</span> <span class="symbol">=</span> <span class="type-name">Fin</span> 4
-</div></div><div class="cell"><div class="code-block">[k1<span class="symbol">,</span> k2] <span class="symbol">=</span> split_key <span class="symbol">$</span> new_key 0
-</div></div><div class="cell"><div class="code-block">
-</div></div><div class="cell"><div class="code-block">psd <span class="symbol">:</span> <span class="type-name">N</span><span class="symbol">=&gt;</span><span class="type-name">N</span><span class="symbol">=&gt;</span><span class="type-name">Float</span> <span class="symbol">=</span>
-  a <span class="symbol">=</span> <span class="keyword">for</span> i<span class="symbol">:</span><span class="type-name">N</span> j<span class="symbol">:</span><span class="type-name">N</span><span class="symbol">.</span> randn <span class="symbol">$</span> ixkey2 k1 i j
-  x <span class="symbol">=</span> a <span class="symbol">**</span> transpose a
-  x <span class="symbol">+</span> eye
-</div></div><div class="cell"><div class="code-block">
-</div></div><div class="cell"><div class="code-block"><span class="keyword">def</span> padLowerTriMat {n v} [<span class="type-name">Add</span> v] (mat<span class="symbol">:</span><span class="type-name">LowerTriMat</span> n v) <span class="symbol">:</span> n<span class="symbol">=&gt;</span>n<span class="symbol">=&gt;</span>v <span class="symbol">=</span>
-  <span class="keyword">for</span> i j<span class="symbol">.</span>
-    <span class="keyword">if</span> (ordinal j)<span class="symbol">&lt;=</span>(ordinal i)
-      <span class="keyword">then</span> mat<span class="symbol">.</span>i<span class="symbol">.</span>(cast j)
-      <span class="keyword">else</span> zero
-</div></div><div class="cell"><div class="code-block">
-</div></div><div class="cell"><div class="code-block">l <span class="symbol">=</span> chol psd
-</div></div><div class="cell"><div class="code-block">l_full <span class="symbol">=</span> padLowerTriMat l
-</div></div><div class="cell"><div class="code-block"><span class="command">:p</span> l_full
-</div><div class="result-block">[ [2.021765, 0., 0., 0.]
-, [-1.795018, 1.990174, 0., 0.]
-, [-0.897886, 0.186757, 1.980266, 0.]
-, [1.445752, -0.296448, 0.724586, 2.230807] ]</div></div><div class="cell"><div class="code-block">
-</div></div><div class="cell"><div class="code-block">psdReconstructed <span class="symbol">=</span> l_full <span class="symbol">**</span> transpose l_full
-</div></div><div class="cell"><div class="code-block">
-</div></div><div class="cell"><div class="code-block"><span class="command">:p</span> sum <span class="keyword">for</span> (i<span class="symbol">,</span> j)<span class="symbol">.</span> sq (psd<span class="symbol">.</span>i<span class="symbol">.</span>j <span class="symbol">-</span> psdReconstructed<span class="symbol">.</span>i<span class="symbol">.</span>j)
-</div><div class="result-block">0.</div></div><div class="cell"><div class="code-block">
-</div></div><div class="cell"><div class="code-block">vec <span class="symbol">:</span> <span class="type-name">N</span><span class="symbol">=&gt;</span><span class="type-name">Float</span> <span class="symbol">=</span> arb k2
-</div></div><div class="cell"><div class="code-block">
-</div></div><div class="cell"><div class="code-block"><span class="command">:p</span> (vec<span class="symbol">,</span> psd <span class="symbol">**.</span> psdsolve psd vec)
-</div><div class="result-block">( [1.211277, 0.23285, -0.741911, 0.883351]
-, [1.211277, 0.23285, -0.741911, 0.883351] )</div></div></div></body></html>
+</div></div><div class="cell"><div class="prose-block"><h2><a href="https://katex.org/docs/supported.html#annotation">Layout annotation</a></h2>
+</div></div><div class="cell"><div class="prose-block"><p>$$\overbrace{a+b+c}^{\text{note}}$$</p>
+</div></div><div class="cell"><div class="prose-block"><p>$$\underbrace{a+b+c}_{\text{note}}$$</p>
+</div></div><div class="cell"><div class="prose-block"><p>$$\xcancel{\text{second-order array combinators}}$$</p>
+</div></div><div class="cell"><div class="prose-block"><h2><a href="https://katex.org/docs/supported.html#logic-and-set-theory">Logic and Set Theory</a></h2>
+</div></div><div class="cell"><div class="prose-block"><p>$$\begin{aligned} \forall \; &amp; \texttt{\textbackslash forall} &amp; \complement \; &amp; \texttt{\textbackslash complement} &amp; \therefore \; &amp; \texttt{\textbackslash therefore} &amp; \emptyset \; &amp; \texttt{\textbackslash emptyset} \\ \exists \; &amp; \texttt{\textbackslash exists} &amp; \subset \; &amp; \texttt{\textbackslash subset} &amp; \because \; &amp; \texttt{\textbackslash because} &amp; \empty \; &amp; \texttt{\textbackslash empty} \\ \exist \; &amp; \texttt{\textbackslash exist} &amp; \supset \; &amp; \texttt{\textbackslash supset} &amp; \mapsto \; &amp; \texttt{\textbackslash mapsto} &amp; \varnothing \; &amp; \texttt{\textbackslash varnothing} \\ \nexists \; &amp; \texttt{\textbackslash nexists} &amp; \mid \; &amp; \texttt{\textbackslash mid} &amp; \to \; &amp; \texttt{\textbackslash to} &amp; \implies \; &amp; \texttt{\textbackslash implies} \\ \in \; &amp; \texttt{\textbackslash in} &amp; \land \; &amp; \texttt{\textbackslash land} &amp; \gets \; &amp; \texttt{\textbackslash gets} &amp; \impliedby \; &amp; \texttt{\textbackslash impliedby} \\ \isin \; &amp; \texttt{\textbackslash isin} &amp; \lor \; &amp; \texttt{\textbackslash lor} &amp; \leftrightarrow \; &amp; \texttt{\textbackslash leftrightarrow} &amp; \iff \; &amp; \texttt{\textbackslash iff} \\ \notin \; &amp; \texttt{\textbackslash notin} &amp; \ni \; &amp; \texttt{\textbackslash ni} &amp; \notni \; &amp; \texttt{\textbackslash notni} &amp; \neg \; &amp; \texttt{\textbackslash neg} \\ \lnot \; &amp; \texttt{\textbackslash lnot} \\ \end{aligned}$$</p>
+</div></div></div></body></html>

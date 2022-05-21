@@ -153,6 +153,11 @@ function lookup_address(cell, address) {
 }
 
 function renderLaTeX() {
+    // Render LaTeX equations in prose blocks via KaTeX, if available.
+    // Skip rendering if KaTeX is unavailable.
+    if (typeof renderMathInElement == &#39;undefined&#39;) {
+        return;
+    }
     // Render LaTeX equations in prose blocks via KaTeX.
     var proseBlocks = document.querySelectorAll(&quot;.prose-block&quot;);
     Array.from(proseBlocks).map((proseBlock) =&gt;
@@ -380,7 +385,7 @@ manifolds.</p>
   [<span class="type-name">TangentSpace</span> manifoldA tangentA<span class="symbol">,</span> <span class="type-name">VSpace</span> tangentA]
   (f<span class="symbol">:</span> manifoldA <span class="symbol">-&gt;</span> <span class="type-name">Float</span>) (x<span class="symbol">:</span> manifoldA) <span class="symbol">:</span> tangentA <span class="symbol">=</span>
   linearized<span class="symbol">:</span> (<span class="type-name">Float</span> <span class="symbol">&amp;</span> (tangentA <span class="symbol">--</span>o <span class="type-name">Float</span>)) <span class="symbol">=</span> manifoldLinearize f x
-  transposeLinear (snd linearized) 1<span class="symbol">.</span>0
+  transpose_linear (snd linearized) 1<span class="symbol">.</span>0
 </div></div><div class="cell"><div class="code-block">
 
 </div></div><div class="cell"><div class="prose-block"><h3>Equivalence to standard differentiation</h3>

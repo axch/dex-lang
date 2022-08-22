@@ -369,6 +369,10 @@ mlir.register_lowering(dex_call_p, dex_call_lowering, platform='cpu')
 
 ### Dex translation rules for JAX primitives
 
+# The actual primitives are listed in the same order as
+# https://jax.readthedocs.io/en/latest/jax.lax.html to make sure we
+# know which ones we missed.
+
 ExprMaker = Callable  # [[Any, ...], Expr]
 expr_makers: Dict[core.Primitive, ExprMaker] = {}
 
@@ -387,38 +391,6 @@ class LoweringRuleContext:
     if t is None:
       t = self._fin_cache[n] = Var(self.fresh(f'f{n}_'))
     return t
-
-
-from jax._src.lax import lax
-
-def _neg(ctx, x):
-  aval, = ctx.avals_in
-  if not np.issubdtype(aval.dtype, np.floating):
-    raise NotImplementedError(aval.dtype)
-  if not aval.shape:
-    return App(Prim('fmul'), Literal(-1, aval.dtype), x)
-  idx_names = [ctx.fresh('i') for _ in aval.shape]
-  idx_tys = [ctx.Fin(d) for d in aval.shape]
-  return For(tuple(idx_names), tuple(idx_tys),
-             App(Prim('fmul'), Literal(-1, aval.dtype), Idx(x, tuple(map(Var, idx_names)))))
-expr_makers[lax.neg_p] = _neg
-# TODO: Use primitives to speed-up compile times!
-expr_makers[lax.sin_p] = lambda ctx, x: App(Var('sin'), x)
-expr_makers[lax.cos_p] = lambda ctx, x: App(Var('cos'), x)
-expr_makers[lax.log_p] = lambda ctx, x: App(Var('log'), x)
-expr_makers[lax.exp_p] = lambda ctx, x: App(Var('exp'), x)
-
-IX_REP_DTYPE = np.dtype('uint32')
-def IxRepLiteral(n): return Literal(n, IX_REP_DTYPE)
-
-def _broadcast_in_dim(ctx, x, *dyn_shape, shape, broadcast_dimensions):
-  idx_names = [ctx.fresh('i') for _ in range(len(shape))]
-  dyn = iter(dyn_shape)
-  tys = [FinType(next(dyn) if d is None else IxRepLiteral(d)) for d in shape]
-  idxs = [Var(idx_names[i]) for i in broadcast_dimensions]
-  x_indexed = Idx(x, tuple(idxs)) if idxs else x
-  return For(tuple(idx_names), tuple(tys), x_indexed)
-expr_makers[lax.broadcast_in_dim_p] = _broadcast_in_dim
 
 def _broadcasting_binop(ibinop_expr: Expr, fbinop_expr: Expr, ctx, x, y):
   x_aval, y_aval = ctx.avals_in
@@ -447,89 +419,26 @@ def _make_bcast_expr(ctx, idx_names, out_shape, in_shape, x):
           for idx_name, out_size, in_size
           in zip(idx_names[-ndim:], out_shape[-ndim:], in_shape)]
   return Idx(x, tuple(idxs))
+
 def unitIdx(ctx):
   return App(Var('unsafe_from_ordinal'), ctx.Fin(1), IxRepLiteral(0))
 
+IX_REP_DTYPE = np.dtype('uint32')
+def IxRepLiteral(n): return Literal(n, IX_REP_DTYPE)
+
+
+from jax._src.lax import lax
+
 expr_makers[lax.add_p] = partial(_broadcasting_binop, Prim('iadd'), Prim('fadd'))
-expr_makers[lax.sub_p] = partial(_broadcasting_binop, Prim('isub'), Prim('fsub'))
-expr_makers[lax.mul_p] = partial(_broadcasting_binop, Prim('imul'), Prim('fmul'))
-expr_makers[lax.div_p] = partial(_broadcasting_binop, Prim('idiv'), Prim('fdiv'))
-expr_makers[lax.max_p] = partial(_broadcasting_binop, Var('max'), Var('max'))
-expr_makers[lax.pow_p] = partial(_broadcasting_binop, None, Prim('fpow'))
-expr_makers[lax.lt_p] = partial(_broadcasting_binop,  Var('(<)'), Var('(<)'))
 
-def _integer_pow_lowering(ctx, x, y):
-  if y == 2:
-    return BinOp(x, '*', x)
-  raise NotImplementedError()
-expr_makers[lax.integer_pow_p] = _integer_pow_lowering
-
-def _select_lowering(ctx, c, *args):
-  if len(args) != 2:
-    raise NotImplementedError()
-  x, y = args
-  out_aval, = ctx.avals_out
-  if ctx.avals_in[0].shape:
-    idx_names, idx_tys = unzip2((ctx.fresh('i'), ctx.Fin(sz))
-                                for sz in out_aval.shape)
-    idx_vars = tuple(Var(ix) for ix in idx_names)
-    return For(tuple(idx_names), tuple(idx_tys),
-               App(Var('select'), Idx(c, idx_vars), Idx(y, idx_vars), Idx(x, idx_vars)))
-  else:
-    return App(Var('select'), c, y, x)
-expr_makers[lax.select_n_p] = _select_lowering
-
-def _squeeze_lowering(ctx, x, dimensions):
-  in_aval, = ctx.avals_in
-  out_aval, = ctx.avals_out
-  if not out_aval.shape:
-    return Idx(x, (unitIdx(ctx),))
-  idx_names, idx_tys = unzip2((ctx.fresh('i'), ctx.Fin(sz))
-                              for sz in out_aval.shape)
-  idx_name = iter(idx_names)
-  idxs = [unitIdx(ctx) if dim in dimensions else Var(next(idx_name))
-          for dim in range(in_aval.ndim)]
-  return For(tuple(idx_names), tuple(idx_tys), Idx(x, tuple(idxs)))
-expr_makers[lax.squeeze_p] = _squeeze_lowering
-
-def _slice_lowering(ctx, x, start_indices, limit_indices, strides):
-  if strides is not None and any(s != 1 for s in strides):
-    raise NotImplementedError("Strided slices not implemented yet!")
-  in_aval, = ctx.avals_in
-  out_aval, = ctx.avals_out
-  assert len(start_indices) == len(limit_indices) == in_aval.ndim == out_aval.ndim
-  idx_names, idx_tys = unzip2((ctx.fresh('i'), ctx.Fin(sz))
-                              for sz in out_aval.shape)
-  input_ixs = [Var(ix) if in_size == out_size else
-               App(App(Var('unsafe_from_ordinal'), ctx.Fin(in_size)),
-                   BinOp(IxRepLiteral(start), '+', App(Var('ordinal'), Var(ix))))
-               for ix, in_size, out_size, start
-               in zip(idx_names, in_aval.shape, out_aval.shape, start_indices)]
-  return For(tuple(idx_names), tuple(idx_tys), Idx(x, tuple(input_ixs)))
-expr_makers[lax.slicing.slice_p] = _slice_lowering
-
-def _dot_general_lowering(ctx, lhs, rhs, dimension_numbers, precision, preferred_element_type):
-  if precision is not None:
-    raise NotImplementedError("Precision control in dot_general not implemented")
-  if preferred_element_type is not None:
-    raise NotImplementedError("dtype selection in dot_general not implemented")
-  lhs_aval, rhs_aval = ctx.avals_in
-  # Matrix-matrix multiply
-  if (lhs_aval.ndim == 2 and rhs_aval.ndim == 2 and
-      dimension_numbers == (((1,), (0,)), ((), ())) and
-      lhs_aval.dtype == f32):
-    return BinOp(lhs, '**', rhs)
-  # Matrix-vector multiply
-  if (lhs_aval.ndim == 2 and rhs_aval.ndim == 1 and
-      dimension_numbers == (((1,), (0,)), ((), ()))):
-    n, k = lhs_aval.shape
-    i, j = ctx.fresh('i'), ctx.fresh('j')
-    return For((i,), (ctx.Fin(n),),
-               App(Var('sum'),
-                   For((j,), (ctx.Fin(k),),
-                       App(Var('mul'), Idx(lhs, (Var(i), Var(j))), Idx(rhs, (Var(j),))))))
-  raise NotImplementedError("Unimplemented dot_general kind")
-expr_makers[lax.dot_general_p] = _dot_general_lowering
+def _broadcast_in_dim(ctx, x, *dyn_shape, shape, broadcast_dimensions):
+  idx_names = [ctx.fresh('i') for _ in range(len(shape))]
+  dyn = iter(dyn_shape)
+  tys = [FinType(next(dyn) if d is None else IxRepLiteral(d)) for d in shape]
+  idxs = [Var(idx_names[i]) for i in broadcast_dimensions]
+  x_indexed = Idx(x, tuple(idxs)) if idxs else x
+  return For(tuple(idx_names), tuple(tys), x_indexed)
+expr_makers[lax.broadcast_in_dim_p] = _broadcast_in_dim
 
 def _concatenate_lowering(ctx, *xs, dimension):
   if dimension != 0:
@@ -554,3 +463,111 @@ def _concatenate_lowering(ctx, *xs, dimension):
              App(Var('concat'), Table(tuple(App(Var('to_list'), x) for x in xs)))),
       ], App(App(Var('unsafe_cast_table'), ctx.Fin(out_aval.shape[0])), Var(xs_v)))
 expr_makers[lax.concatenate_p] = _concatenate_lowering
+
+# TODO: Use Dex primitives to speed-up Dex compile times
+expr_makers[lax.cos_p] = lambda ctx, x: App(Var('cos'), x)
+
+expr_makers[lax.div_p] = partial(_broadcasting_binop, Prim('idiv'), Prim('fdiv'))
+
+def _dot_general_lowering(ctx, lhs, rhs, dimension_numbers, precision, preferred_element_type):
+  if precision is not None:
+    raise NotImplementedError("Precision control in dot_general not implemented")
+  if preferred_element_type is not None:
+    raise NotImplementedError("dtype selection in dot_general not implemented")
+  lhs_aval, rhs_aval = ctx.avals_in
+  # Matrix-matrix multiply
+  if (lhs_aval.ndim == 2 and rhs_aval.ndim == 2 and
+      dimension_numbers == (((1,), (0,)), ((), ())) and
+      lhs_aval.dtype == f32):
+    return BinOp(lhs, '**', rhs)
+  # Matrix-vector multiply
+  if (lhs_aval.ndim == 2 and rhs_aval.ndim == 1 and
+      dimension_numbers == (((1,), (0,)), ((), ()))):
+    n, k = lhs_aval.shape
+    i, j = ctx.fresh('i'), ctx.fresh('j')
+    return For((i,), (ctx.Fin(n),),
+               App(Var('sum'),
+                   For((j,), (ctx.Fin(k),),
+                       App(Var('mul'), Idx(lhs, (Var(i), Var(j))), Idx(rhs, (Var(j),))))))
+  raise NotImplementedError("Unimplemented dot_general kind")
+expr_makers[lax.dot_general_p] = _dot_general_lowering
+
+# TODO: Use Dex primitives to speed-up Dex compile times
+expr_makers[lax.exp_p] = lambda ctx, x: App(Var('exp'), x)
+
+expr_makers[lax.lt_p] = partial(_broadcasting_binop,  Var('(<)'), Var('(<)'))
+
+# TODO: Use Dex primitives to speed-up Dex compile times
+expr_makers[lax.log_p] = lambda ctx, x: App(Var('log'), x)
+
+expr_makers[lax.max_p] = partial(_broadcasting_binop, Var('max'), Var('max'))
+expr_makers[lax.mul_p] = partial(_broadcasting_binop, Prim('imul'), Prim('fmul'))
+
+def _neg(ctx, x):
+  aval, = ctx.avals_in
+  if not np.issubdtype(aval.dtype, np.floating):
+    raise NotImplementedError(aval.dtype)
+  if not aval.shape:
+    return App(Prim('fmul'), Literal(-1, aval.dtype), x)
+  idx_names = [ctx.fresh('i') for _ in aval.shape]
+  idx_tys = [ctx.Fin(d) for d in aval.shape]
+  return For(tuple(idx_names), tuple(idx_tys),
+             App(Prim('fmul'), Literal(-1, aval.dtype), Idx(x, tuple(map(Var, idx_names)))))
+expr_makers[lax.neg_p] = _neg
+
+expr_makers[lax.pow_p] = partial(_broadcasting_binop, None, Prim('fpow'))
+
+def _integer_pow_lowering(ctx, x, y):
+  if y == 2:
+    return BinOp(x, '*', x)
+  raise NotImplementedError()
+expr_makers[lax.integer_pow_p] = _integer_pow_lowering
+
+def _select_lowering(ctx, c, *args):
+  if len(args) != 2:
+    raise NotImplementedError()
+  x, y = args
+  out_aval, = ctx.avals_out
+  if ctx.avals_in[0].shape:
+    idx_names, idx_tys = unzip2((ctx.fresh('i'), ctx.Fin(sz))
+                                for sz in out_aval.shape)
+    idx_vars = tuple(Var(ix) for ix in idx_names)
+    return For(tuple(idx_names), tuple(idx_tys),
+               App(Var('select'), Idx(c, idx_vars), Idx(y, idx_vars), Idx(x, idx_vars)))
+  else:
+    return App(Var('select'), c, y, x)
+expr_makers[lax.select_n_p] = _select_lowering
+
+def _slice_lowering(ctx, x, start_indices, limit_indices, strides):
+  if strides is not None and any(s != 1 for s in strides):
+    raise NotImplementedError("Strided slices not implemented yet!")
+  in_aval, = ctx.avals_in
+  out_aval, = ctx.avals_out
+  assert len(start_indices) == len(limit_indices) == in_aval.ndim == out_aval.ndim
+  idx_names, idx_tys = unzip2((ctx.fresh('i'), ctx.Fin(sz))
+                              for sz in out_aval.shape)
+  input_ixs = [Var(ix) if in_size == out_size else
+               App(App(Var('unsafe_from_ordinal'), ctx.Fin(in_size)),
+                   BinOp(IxRepLiteral(start), '+', App(Var('ordinal'), Var(ix))))
+               for ix, in_size, out_size, start
+               in zip(idx_names, in_aval.shape, out_aval.shape, start_indices)]
+  return For(tuple(idx_names), tuple(idx_tys), Idx(x, tuple(input_ixs)))
+expr_makers[lax.slicing.slice_p] = _slice_lowering
+
+# TODO: Use Dex primitives to speed-up Dex compile times
+expr_makers[lax.sin_p] = lambda ctx, x: App(Var('sin'), x)
+
+expr_makers[lax.sub_p] = partial(_broadcasting_binop, Prim('isub'), Prim('fsub'))
+
+def _squeeze_lowering(ctx, x, dimensions):
+  in_aval, = ctx.avals_in
+  out_aval, = ctx.avals_out
+  if not out_aval.shape:
+    return Idx(x, (unitIdx(ctx),))
+  idx_names, idx_tys = unzip2((ctx.fresh('i'), ctx.Fin(sz))
+                              for sz in out_aval.shape)
+  idx_name = iter(idx_names)
+  idxs = [unitIdx(ctx) if dim in dimensions else Var(next(idx_name))
+          for dim in range(in_aval.ndim)]
+  return For(tuple(idx_names), tuple(idx_tys), Idx(x, tuple(idxs)))
+expr_makers[lax.squeeze_p] = _squeeze_lowering

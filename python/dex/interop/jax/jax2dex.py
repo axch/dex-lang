@@ -495,6 +495,18 @@ expr_makers[lax.dot_general_p] = _dot_general_lowering
 # TODO: Use Dex primitives to speed-up Dex compile times
 expr_makers[lax.exp_p] = lambda ctx, x: App(Var('exp'), x)
 
+def _iota_lowering(ctx, *dyn_shape, dtype, shape, dimension):
+  # TODO: Are the dynamic sizes (Dex expressions that produce)
+  # integers or index sets?
+  idx_names = [ctx.fresh('i') for _ in range(len(shape))]
+  dyn = iter(dyn_shape)
+  tys = [FinType(next(dyn) if d is None else IxRepLiteral(d)) for d in shape]
+  # TODO cast to the requested result dtype
+  body = Var(idx_names[dimension])
+  expr = For(tuple(idx_names), tuple(tys), body)
+  return expr
+expr_makers[lax.iota_p] = _iota_lowering
+
 expr_makers[lax.lt_p] = partial(_broadcasting_binop,  Var('(<)'), Var('(<)'))
 
 # TODO: Use Dex primitives to speed-up Dex compile times

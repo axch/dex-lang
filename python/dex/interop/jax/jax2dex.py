@@ -170,7 +170,18 @@ class ConPattern(Pattern):
     return f'({self.con} {fields_str})'
 
 @dataclass
-class Decl:
+class TuplePattern(Pattern):
+  fields: typing.Tuple[Optional[str]]
+  def pprint(self) -> str:
+    fields_str = ', '.join(f if f is not None else '_' for f in self.fields)
+    return f'({fields_str})'
+
+@dataclass
+class Statement:
+  pass
+
+@dataclass
+class Decl(Statement):
   name: Union[str, Pattern]
   expr: Expr
   def pprint(self) -> str:
@@ -178,8 +189,21 @@ class Decl:
     return f'{name_str} = {self.expr.pprint()}'
 
 @dataclass
+class Assignment(Statement):
+  name: str
+  expr: Expr
+  def pprint(self) -> str:
+    return f'{self.name} := {self.expr.pprint()}'
+
+@dataclass
+class VoidExpr(Statement):
+  expr: Expr
+  def pprint(self) -> str:
+    return self.expr.pprint()
+
+@dataclass
 class Block:
-  decls: List[Decl]
+  decls: List[Statement]
   expr: Expr
 
 @dataclass
@@ -319,9 +343,12 @@ def dex_atom(jaxpr: core.Jaxpr) -> Atom:
     in_avals = [typ(x) for x in e.invars]
     out_avals = [v.aval for v in e.outvars]
     ctx = LoweringRuleContext(counter, fin_cache, in_avals, out_avals)
-    expr_or_block = expr_makers[e.primitive](ctx, *map(read, e.invars), **e.params)
+    if e.primitive in expr_makers:
+      expr_or_block = expr_makers[e.primitive](ctx, *map(read, e.invars), **e.params)
+    else:
+      raise NotImplementedError(f"Jax primitive {e.primitive} is not supported")
     if e.primitive.multiple_results:
-      assert False  # TODO
+      raise NotImplementedError(f"TODO Support multiple returns for Jax primitive {e.primitive}")
     else:
       name = next(varnames)
       if isinstance(expr_or_block, Expr):
@@ -330,8 +357,9 @@ def dex_atom(jaxpr: core.Jaxpr) -> Atom:
         decls.extend(expr_or_block.decls)
         expr = expr_or_block.expr
       else:
-        raise TypeError(f"Dex lowering rule should return either an expression or"
-                        f"a block, but got: {type(expr_or_block)}")
+        raise TypeError(
+            f"Dex lowering rule for {e.primitive} should return either an "
+            f"expression or a block, but got: {type(expr_or_block)}")
       decls.append(Decl(name, expr))
       write(e.outvars[0], Var(name))
 
@@ -428,6 +456,7 @@ def IxRepLiteral(n): return Literal(n, IX_REP_DTYPE)
 
 
 from jax._src.lax import lax
+from jax._src.lax.control_flow import loops
 
 expr_makers[lax.add_p] = partial(_broadcasting_binop, Prim('iadd'), Prim('fadd'))
 
@@ -532,8 +561,74 @@ expr_makers[lax.pow_p] = partial(_broadcasting_binop, None, Prim('fpow'))
 def _integer_pow_lowering(ctx, x, y):
   if y == 2:
     return BinOp(x, '*', x)
-  raise NotImplementedError()
+  raise NotImplementedError(f"TODO Implement integer power for exponent {y}")
 expr_makers[lax.integer_pow_p] = _integer_pow_lowering
+
+def _scan_lowering(ctx, *args, jaxpr, length, linear, num_carry, num_consts, reverse, unroll):
+  import ipdb; ipdb.set_trace()
+  for a in args:
+    print(a.pprint())
+  # We are trying to make the Dex expression
+  # with_state carry_arg_k \carry_k.
+  #   ...
+  #     outputs = for i:(Fin length).
+  #       (..., new_carry_k, ..., inner_output_k, ...) =
+  #         body ... fixed_arg_k ... (get carry_k) ... sliced_arg_k.i
+  #       carry_k := new_carry_k
+  #       (..., inner_output_k, ...)
+  #     -- AoS to SoA
+  #     output_k = for i.
+  #       (..., output_k, ...) = outputs.i
+  #       output_k
+  #     (..., carry_k, ..., output_k, ...)
+
+  # First, allocate a name for the body, and convert the jaxpr to it
+  body_name = ctx.fresh('body')
+  # TODO convert the jaxpr to a Dex function, bind it to `body_name`
+  body_decl = Decl(body_name, Literal(0))
+  num_extensional_outputs = 0   # TODO compute number of extensional outputs, presumably from the scan body
+
+  # Allocate the names we will need: the carry references, their new values,  and the Dex-side index i.
+  carry_names = [ctx.fresh('carry') for _ in range(num_carry)]
+  new_carry_names = [ctx.fresh('new_carry') for _ in range(num_carry)]
+  inner_output_names = [ctx.fresh('inner_output') for _ in range(num_extensional_outputs)]
+  idx_name = ctx.fresh('i')
+
+  # Partition the arguments by role
+  fixed_args = args[:num_consts]
+  carry_args = args[num_consts:num_consts + num_carry]
+  extensive_args = args[num_consts + num_carry:]
+
+  # Construct the call to the body function
+  carry_fetches = list(map(lambda a: App(Var('get'), a), carry_args))
+  extensive_indexings = map(lambda a: Idx(a, tuple(Var(idx_name))), extensive_args)
+  body_call = App(Var(body_name), *fixed_args, *carry_fetches, *extensive_indexings)
+
+  # Construct the for-loop body
+  body_bound = TuplePattern(tuple(*new_carry_names, *inner_output_names))
+  for_decls = [Decl(body_bound, body_call)]
+  for carry, new_carry in zip(carry_names, new_carry_names):
+    for_decls.append(Assignment(carry, Var(new_carry)))
+  for_body = Block(for_decls, Tuple(tuple(*inner_output_names)))
+
+  if num_extensional_outputs != 0:
+    raise NotImplementedError("TODO Implement dexjit of scan with array outputs")
+
+  # Construct the innermost with_state body
+  state_body_decls = [VoidExpr(
+      For(tuple(idx_name), tuple(FinTabType(length)), for_body))]
+  state_body_result = Tuple(tuple(*carry_fetches))
+  state_body = Block(state_body_decls, state_body_result)
+
+  # Wrap it in the required levels of with_state
+  scan_body = state_body
+  for carry_arg, carry_type, carry_name in zip(carry_args, carry_types, carry_names):
+    scan_body = Block([], App(Var('with_state'), carry_arg, Lam(carry_name, carry_type, scan_body)))
+
+  # Attach the declaration of the scan body function and return
+  return Block([body_decl] + scan_body.decls, scan_body.expr)
+
+expr_makers[loops.scan_p] = _scan_lowering
 
 def _select_lowering(ctx, c, *args):
   if len(args) != 2:

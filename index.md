@@ -16,7 +16,7 @@
 - [examples/particle-swarm-optimizer.dx](examples/particle-swarm-optimizer.html): Particle Swarm Optimizer
 - [examples/ode-integrator.dx](examples/ode-integrator.html): ODE Integrator
 - [examples/mcmc.dx](examples/mcmc.html): Markov Chain Monte Carlo
-- [examples/ctc.dx](examples/ctc.html): Connectionist Temporal Classification
+- [examples/ctc.dx](examples/ctc.html): [Connectionist Temporal Classification](https://www.cs.toronto.edu/~graves/icml_2006.pdf)
 - [examples/raytrace.dx](examples/raytrace.html): Multi-step Ray Tracer
 - [examples/particle-filter.dx](examples/particle-filter.html): Particle Filter
 - [examples/isomorphisms.dx](examples/isomorphisms.html): Isomorphisms in Dex
@@ -36,11 +36,13 @@
 ## Libraries
 
 - [lib/prelude.dx](prelude.html): The Dex Prelude (automatically imported)
-- [lib/linalg.dx](lib/linalg.html): Linear Algebra
+- [lib/netpbm.dx](lib/netpbm.html): Netpbm
 - [lib/sort.dx](lib/sort.html): Monoidal Merge Sort
-- [lib/png.dx](lib/png.html): PNG Rendering
-- [lib/plot.dx](lib/plot.html): Plotting
 - [lib/parser.dx](lib/parser.html): Parser Combinators
 - [lib/fft.dx](lib/fft.html): Fast Fourier Transform
 - [lib/diagram.dx](lib/diagram.html): Vector Graphics
+- [lib/stats.dx](lib/stats.html): Stats
+- [lib/png.dx](lib/png.html): PNG Rendering
+- [lib/plot.dx](lib/plot.html): Plotting
+- [lib/linalg.dx](lib/linalg.html): Linear Algebra
 - [lib/set.dx](lib/set.html): Sets and Set-Indexed Arrays

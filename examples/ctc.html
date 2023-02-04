@@ -390,7 +390,7 @@ that doesn't contain the first element.</p>
 </div><div class="result-block">True</div></div><div class="cell"><div class="code-block">
 </div></div><div class="cell"><div class="code-block"><span class="keyword">for</span> i<span class="symbol">:</span>(<span class="type-name">AllButFirst</span> (<span class="type-name">Bool</span> <span class="symbol">|</span> <span class="type-name">Bool</span>))<span class="symbol">.</span>
   inject (<span class="type-name">Bool</span> <span class="symbol">|</span> <span class="type-name">Bool</span>) i
-</div><div class="result-block">[(Left True), (Right False), (Right True)]@(AllButFirst (Bool | Bool))</div></div><div class="cell"><div class="code-block">
+</div><div class="result-block">[(Left True), (Right False), (Right True)]</div></div><div class="cell"><div class="code-block">
 </div></div><div class="cell"><div class="code-block">project (<span class="type-name">AllButFirst</span> (<span class="type-name">Bool</span> <span class="symbol">|</span> <span class="type-name">Bool</span>)) (0<span class="symbol">@</span>(<span class="type-name">Bool</span> <span class="symbol">|</span> <span class="type-name">Bool</span>))
 </div><div class="result-block">Nothing</div></div><div class="cell"><div class="code-block">
 
@@ -475,9 +475,9 @@ and if not, casts them to an equivalent but provably <code>NonEmpty</code> form.
       position&#39; <span class="symbol">=</span> (<span class="type-name">Unit</span> <span class="symbol">|</span> <span class="type-name">Fin</span> position_size_m1)
 
       blank&#39;  <span class="symbol">=</span> unsafe_from_ordinal vocab&#39; (ordinal blank)
-      logits&#39; <span class="symbol">=</span> <span class="keyword">view</span> t<span class="command">:time</span>&#39; v<span class="command">:vocab</span>&#39;<span class="symbol">.</span>
+      logits&#39; <span class="symbol">=</span> <span class="keyword">for</span> t<span class="command">:time</span>&#39; v<span class="command">:vocab</span>&#39;<span class="symbol">.</span>
         logits<span class="symbol">.</span>(unsafe_from_ordinal _ (ordinal t))<span class="symbol">.</span>(unsafe_from_ordinal _ (ordinal v))
-      labels&#39; <span class="symbol">=</span> <span class="keyword">view</span> p<span class="command">:position</span>&#39;<span class="symbol">.</span>
+      labels&#39; <span class="symbol">=</span> <span class="keyword">for</span> p<span class="command">:position</span>&#39;<span class="symbol">.</span>
         unsafe_from_ordinal _ (ordinal labels<span class="symbol">.</span>(unsafe_from_ordinal _ (ordinal p)))
 
       ctc_non_empty blank&#39; logits&#39; labels&#39;
@@ -495,7 +495,7 @@ and if not, casts them to an equivalent but provably <code>NonEmpty</code> form.
 </div></div><div class="cell"><div class="code-block">
 </div></div><div class="cell"><div class="code-block"><span class="comment">-- Evaluate probability.
 </span></div></div><div class="cell"><div class="code-block"><span class="command">:p</span> ls_to_f <span class="symbol">$</span> ctc blank logits labels
-</div><div class="result-block">0.00209</div></div><div class="cell"><div class="code-block">
+</div><div class="result-block">0.00208998</div></div><div class="cell"><div class="code-block">
 
 </div></div><div class="cell"><div class="prose-block"><h3>Test</h3>
 <p>The CTC paper claims that the output of the above algorithm
@@ -505,4 +505,4 @@ or the paper.</p>
 </div></div><div class="cell"><div class="code-block"><span class="comment">-- Fin N=&gt;Vocab is the set of all combinations of N tokens.
 </span></div></div><div class="cell"><div class="code-block">sum <span class="keyword">for</span> i<span class="symbol">:</span>(<span class="type-name">Fin</span> 3<span class="symbol">=&gt;</span><span class="type-name">Vocab</span>)<span class="symbol">.</span>
   ls_to_f <span class="symbol">$</span> ctc blank logits i
-</div><div class="result-block">0.565375</div></div></div></body></html>
+</div><div class="result-block">0.5653746</div></div></div></body></html>

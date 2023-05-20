@@ -312,7 +312,6 @@ render(RENDER_MODE.STATIC);"></script></head><body><div id="main-output"><div cl
 </div></div><div class="cell"><div class="code-block"><span class="type-name">Type</span> <span class="symbol">=</span> %<span class="type-name">TyKind</span>()
 </div></div><div class="cell"><div class="code-block"><span class="type-name">Heap</span> <span class="symbol">=</span> %<span class="type-name">HeapType</span>()
 </div></div><div class="cell"><div class="code-block"><span class="type-name">Effects</span> <span class="symbol">=</span> %<span class="type-name">EffKind</span>()
-</div></div><div class="cell"><div class="code-block"><span class="type-name">Fields</span> <span class="symbol">=</span> %<span class="type-name">LabeledRowKind</span>()
 </div></div><div class="cell"><div class="code-block">
 </div></div><div class="cell"><div class="code-block"><span class="type-name">Int64</span> <span class="symbol">=</span> %<span class="type-name">Int64</span>()
 </div></div><div class="cell"><div class="code-block"><span class="type-name">Int32</span> <span class="symbol">=</span> %<span class="type-name">Int32</span>()
@@ -324,8 +323,6 @@ render(RENDER_MODE.STATIC);"></script></head><body><div id="main-output"><div cl
 </div></div><div class="cell"><div class="code-block"><span class="type-name">Word64</span> <span class="symbol">=</span> %<span class="type-name">Word64</span>()
 </div></div><div class="cell"><div class="code-block"><span class="type-name">Byte</span> <span class="symbol">=</span> <span class="type-name">Word8</span>
 </div></div><div class="cell"><div class="code-block"><span class="type-name">Char</span> <span class="symbol">=</span> <span class="type-name">Byte</span>
-</div></div><div class="cell"><div class="code-block">
-</div></div><div class="cell"><div class="code-block"><span class="type-name">Label</span> <span class="symbol">=</span> %<span class="type-name">Label</span>()
 </div></div><div class="cell"><div class="code-block">
 </div></div><div class="cell"><div class="code-block"><span class="type-name">RawPtr</span> <span class="symbol">:</span> <span class="type-name">Type</span> <span class="symbol">=</span> %<span class="type-name">Word8Ptr</span>()
 </div></div><div class="cell"><div class="code-block">
@@ -631,7 +628,7 @@ Includes floating point and two field rational representations.</p>
   rep_to_nat %isub(x&#39;<span class="symbol">,</span> y&#39;)
 </div></div><div class="cell"><div class="code-block">
 </div></div><div class="cell"><div class="code-block"><span class="comment">-- `(i..)` parses as `RangeFrom _ i`
-</span></div></div><div class="cell"><div class="code-block"><span class="comment">-- TODO: need to a way to indicate `.new` as private
+</span></div></div><div class="cell"><div class="code-block"><span class="comment">-- TODO: need to a way to indicate constructor as private
 </span></div></div><div class="cell"><div class="code-block"><span class="keyword">struct</span> <span class="type-name">RangeFrom</span>(q<span class="symbol">:</span><span class="type-name">Type</span><span class="symbol">,</span> i<span class="command">:q</span>) <span class="symbol">=</span> val <span class="symbol">:</span> <span class="type-name">Nat</span>
 </div></div><div class="cell"><div class="code-block">
 </div></div><div class="cell"><div class="code-block"><span class="comment">-- `(i&lt;..)` parses as `RangeFromExc _ i`
@@ -646,22 +643,22 @@ Includes floating point and two field rational representations.</p>
 </div></div><div class="cell"><div class="code-block"><span class="keyword">instance</span> <span class="type-name">Ix</span>(<span class="type-name">RangeFrom</span> q i) <span class="keyword">given</span> (q<span class="symbol">|</span><span class="type-name">Ix</span><span class="symbol">,</span> i<span class="command">:q</span>)
   <span class="keyword">def</span> size&#39;() <span class="symbol">=</span> unsafe_nat_diff(size q<span class="symbol">,</span> ordinal i)
   <span class="keyword">def</span> ordinal(j) <span class="symbol">=</span> j<span class="symbol">.</span>val
-  <span class="keyword">def</span> unsafe_from_ordinal(j) <span class="symbol">=</span> <span class="type-name">RangeFrom</span><span class="symbol">.</span>new(j)
+  <span class="keyword">def</span> unsafe_from_ordinal(j) <span class="symbol">=</span> <span class="type-name">RangeFrom</span>(j)
 </div></div><div class="cell"><div class="code-block">
 </div></div><div class="cell"><div class="code-block"><span class="keyword">instance</span> <span class="type-name">Ix</span>(<span class="type-name">RangeFromExc</span> q i) <span class="keyword">given</span> (q<span class="symbol">|</span><span class="type-name">Ix</span><span class="symbol">,</span> i<span class="command">:q</span>)
   <span class="keyword">def</span> size&#39;() <span class="symbol">=</span> unsafe_nat_diff(size q<span class="symbol">,</span> ordinal i <span class="symbol">+</span> 1)
   <span class="keyword">def</span> ordinal(j) <span class="symbol">=</span> j<span class="symbol">.</span>val
-  <span class="keyword">def</span> unsafe_from_ordinal(j) <span class="symbol">=</span> <span class="type-name">RangeFromExc</span><span class="symbol">.</span>new(j)
+  <span class="keyword">def</span> unsafe_from_ordinal(j) <span class="symbol">=</span> <span class="type-name">RangeFromExc</span>(j)
 </div></div><div class="cell"><div class="code-block">
 </div></div><div class="cell"><div class="code-block"><span class="keyword">instance</span> <span class="type-name">Ix</span>(<span class="type-name">RangeTo</span> q i) <span class="keyword">given</span> (q<span class="symbol">|</span><span class="type-name">Ix</span><span class="symbol">,</span> i<span class="command">:q</span>)
   <span class="keyword">def</span> size&#39;() <span class="symbol">=</span> ordinal i <span class="symbol">+</span> 1
   <span class="keyword">def</span> ordinal(j) <span class="symbol">=</span> j<span class="symbol">.</span>val
-  <span class="keyword">def</span> unsafe_from_ordinal(j) <span class="symbol">=</span> <span class="type-name">RangeTo</span><span class="symbol">.</span>new(j)
+  <span class="keyword">def</span> unsafe_from_ordinal(j) <span class="symbol">=</span> <span class="type-name">RangeTo</span>(j)
 </div></div><div class="cell"><div class="code-block">
 </div></div><div class="cell"><div class="code-block"><span class="keyword">instance</span> <span class="type-name">Ix</span>(<span class="type-name">RangeToExc</span> q i) <span class="keyword">given</span> (q<span class="symbol">|</span><span class="type-name">Ix</span><span class="symbol">,</span> i<span class="command">:q</span>)
   <span class="keyword">def</span> size&#39;() <span class="symbol">=</span> ordinal i
   <span class="keyword">def</span> ordinal(j) <span class="symbol">=</span> j<span class="symbol">.</span>val
-  <span class="keyword">def</span> unsafe_from_ordinal(j) <span class="symbol">=</span> <span class="type-name">RangeToExc</span><span class="symbol">.</span>new(j)
+  <span class="keyword">def</span> unsafe_from_ordinal(j) <span class="symbol">=</span> <span class="type-name">RangeToExc</span>(j)
 </div></div><div class="cell"><div class="code-block">
 </div></div><div class="cell"><div class="code-block"><span class="keyword">instance</span> <span class="type-name">Ix</span>(())
   <span class="keyword">def</span> size&#39;() <span class="symbol">=</span> 1
@@ -706,12 +703,9 @@ Includes floating point and two field rational representations.</p>
   one <span class="symbol">=</span> <span class="keyword">for</span> _<span class="symbol">.</span> one
 </div></div><div class="cell"><div class="code-block">
 </div></div><div class="cell"><div class="prose-block"><h2>Basic polymorphic functions and types</h2>
-</div></div><div class="cell"><div class="code-block"><span class="keyword">def</span> fst(pair<span class="symbol">:</span>(a<span class="symbol">,</span> b)) <span class="symbol">-&gt;</span> a <span class="keyword">given</span> (a<span class="symbol">,</span> b) <span class="symbol">=</span>
-  (x<span class="symbol">,</span> _) <span class="symbol">=</span> pair
-  x
-</div></div><div class="cell"><div class="code-block"><span class="keyword">def</span> snd(pair<span class="symbol">:</span>(a<span class="symbol">,</span> b)) <span class="symbol">-&gt;</span> b <span class="keyword">given</span> (a<span class="symbol">,</span> b) <span class="symbol">=</span>
-  (_<span class="symbol">,</span> y) <span class="symbol">=</span> pair
-  y
+</div></div><div class="cell"><div class="code-block"><span class="keyword">def</span> fst(pair<span class="symbol">:</span>(a<span class="symbol">,</span> b)) <span class="symbol">-&gt;</span> a <span class="keyword">given</span> (a<span class="symbol">,</span> b) <span class="symbol">=</span> pair<span class="symbol">.</span>0
+</div></div><div class="cell"><div class="code-block"><span class="keyword">def</span> snd(pair<span class="symbol">:</span>(a<span class="symbol">,</span> b)) <span class="symbol">-&gt;</span> b <span class="keyword">given</span> (a<span class="symbol">,</span> b) <span class="symbol">=</span> pair<span class="symbol">.</span>1
+</div></div><div class="cell"><div class="code-block">
 </div></div><div class="cell"><div class="code-block"><span class="keyword">def</span> swap(pair<span class="symbol">:</span>(a<span class="symbol">,</span> b)) <span class="symbol">-&gt;</span> (b<span class="symbol">,</span> a) <span class="keyword">given</span> (a<span class="symbol">,</span> b) <span class="symbol">=</span>
   (x<span class="symbol">,</span> y) <span class="symbol">=</span> pair
   (y<span class="symbol">,</span> x)
@@ -747,6 +741,15 @@ Includes floating point and two field rational representations.</p>
     (i<span class="symbol">,</span> (j<span class="symbol">,</span> k)) <span class="symbol">=</span> unsafe_from_ordinal o
     (i<span class="symbol">,</span> j<span class="symbol">,</span> k)
 </div></div><div class="cell"><div class="code-block">
+</div></div><div class="cell"><div class="code-block"><span class="keyword">instance</span> <span class="type-name">Ix</span>((a<span class="symbol">,</span> b<span class="symbol">,</span> c<span class="symbol">,</span> d)) <span class="keyword">given</span> (a<span class="symbol">|</span><span class="type-name">Ix</span><span class="symbol">,</span> b<span class="symbol">|</span><span class="type-name">Ix</span><span class="symbol">,</span> c<span class="symbol">|</span><span class="type-name">Ix</span><span class="symbol">,</span> d<span class="symbol">|</span><span class="type-name">Ix</span>)
+  <span class="keyword">def</span> size&#39;() <span class="symbol">=</span> size a <span class="symbol">*</span> size b <span class="symbol">*</span> size c <span class="symbol">*</span> size d
+  <span class="keyword">def</span> ordinal(tup) <span class="symbol">=</span>
+    (i<span class="symbol">,</span> j<span class="symbol">,</span> k<span class="symbol">,</span> m) <span class="symbol">=</span> tup
+    ordinal((i<span class="symbol">,</span>(j<span class="symbol">,</span>(k<span class="symbol">,</span>m))))
+  <span class="keyword">def</span> unsafe_from_ordinal(o) <span class="symbol">=</span>
+    (i<span class="symbol">,</span> (j<span class="symbol">,</span> (k<span class="symbol">,</span> m))) <span class="symbol">=</span> unsafe_from_ordinal o
+    (i<span class="symbol">,</span> j<span class="symbol">,</span> k<span class="symbol">,</span> m)
+</div></div><div class="cell"><div class="code-block">
 </div></div><div class="cell"><div class="prose-block"><h2>Vector spaces</h2>
 </div></div><div class="cell"><div class="code-block"><span class="keyword">interface</span> <span class="type-name">VSpace</span>(a<span class="symbol">|</span><span class="type-name">Add</span><span class="symbol">|</span><span class="type-name">Sub</span>)
   (<span class="symbol">.*</span>) <span class="symbol">:</span> (<span class="type-name">Float</span><span class="symbol">,</span> a) <span class="symbol">-&gt;</span> a
@@ -763,8 +766,8 @@ Includes floating point and two field rational representations.</p>
 </div></div><div class="cell"><div class="code-block">
 </div></div><div class="cell"><div class="code-block"><span class="keyword">instance</span> <span class="type-name">VSpace</span>((a<span class="symbol">,</span> b)) <span class="keyword">given</span> (a<span class="symbol">|</span><span class="type-name">VSpace</span><span class="symbol">,</span> b<span class="symbol">|</span><span class="type-name">VSpace</span>)
   <span class="keyword">def</span> (<span class="symbol">.*</span>)(s<span class="symbol">,</span> pair) <span class="symbol">=</span>
-    (a<span class="symbol">,</span> b) <span class="symbol">=</span> pair
-    (s <span class="symbol">.*</span> a<span class="symbol">,</span> s <span class="symbol">.*</span> b)
+    (x<span class="symbol">,</span> y) <span class="symbol">=</span> pair
+    (s <span class="symbol">.*</span> x<span class="symbol">,</span> s <span class="symbol">.*</span> y)
 </div></div><div class="cell"><div class="code-block">
 </div></div><div class="cell"><div class="code-block"><span class="keyword">instance</span> <span class="type-name">VSpace</span>((i<span class="command">:n</span>) <span class="symbol">=&gt;</span> (<span class="symbol">..</span>i) <span class="symbol">=&gt;</span> a) <span class="keyword">given</span> (n<span class="symbol">|</span><span class="type-name">Ix</span><span class="symbol">,</span> a<span class="symbol">|</span><span class="type-name">VSpace</span>)
   <span class="keyword">def</span> (<span class="symbol">.*</span>)(s<span class="symbol">,</span> xs) <span class="symbol">=</span> <span class="keyword">for</span> i<span class="symbol">.</span> s <span class="symbol">.*</span> xs[i]
@@ -884,7 +887,7 @@ Here we define several basic kinds, and some operators on them.</p>
 </div></div><div class="cell"><div class="code-block"><span class="keyword">instance</span> <span class="type-name">Ix</span>(<span class="type-name">Post</span> segment) <span class="keyword">given</span> (segment<span class="symbol">|</span><span class="type-name">Ix</span>)
   <span class="keyword">def</span> size&#39;() <span class="symbol">=</span> size segment <span class="symbol">+</span> 1
   <span class="keyword">def</span> ordinal(i) <span class="symbol">=</span> i<span class="symbol">.</span>val
-  <span class="keyword">def</span> unsafe_from_ordinal(i) <span class="symbol">=</span> <span class="type-name">Post</span><span class="symbol">.</span>new(i)
+  <span class="keyword">def</span> unsafe_from_ordinal(i) <span class="symbol">=</span> <span class="type-name">Post</span>(i)
 </div></div><div class="cell"><div class="code-block">
 </div></div><div class="cell"><div class="code-block"><span class="keyword">def</span> left_post(i<span class="command">:n</span>) <span class="symbol">-&gt;</span> <span class="type-name">Post</span> n <span class="keyword">given</span> (n<span class="symbol">|</span><span class="type-name">Ix</span>) <span class="symbol">=</span>
   unsafe_from_ordinal(n<span class="symbol">=</span><span class="type-name">Post</span> n<span class="symbol">,</span> ordinal i)
@@ -962,8 +965,8 @@ Monoids support <code>fold</code> operations, and similar.</li>
   %mextend(ref<span class="symbol">,</span> empty<span class="symbol">,</span> <span class="symbol">\</span>x<span class="command">:b</span> y<span class="command">:b</span><span class="symbol">.</span> %applyMethod1(bm<span class="symbol">,</span> x<span class="symbol">,</span> y)<span class="symbol">,</span> x)
 </div></div><div class="cell"><div class="code-block">
 </div></div><div class="cell"><div class="code-block"><span class="keyword">def</span> (<span class="symbol">!</span>)(ref<span class="symbol">:</span> <span class="type-name">Ref</span> h (n<span class="symbol">=&gt;</span>a)<span class="symbol">,</span> i<span class="command">:n</span>) <span class="symbol">-&gt;</span> <span class="type-name">Ref</span> h a <span class="keyword">given</span> (n<span class="symbol">|</span><span class="type-name">Ix</span><span class="symbol">,</span> a<span class="symbol">|</span><span class="type-name">Data</span><span class="symbol">,</span> h) <span class="symbol">=</span> %indexRef(ref<span class="symbol">,</span> i)
-</div></div><div class="cell"><div class="code-block"><span class="keyword">def</span> fst_ref(ref<span class="symbol">:</span> <span class="type-name">Ref</span> h (a<span class="symbol">,</span>b)) <span class="symbol">-&gt;</span> <span class="type-name">Ref</span> h a <span class="keyword">given</span> (a<span class="symbol">|</span><span class="type-name">Data</span><span class="symbol">,</span> b<span class="symbol">,</span> h) <span class="symbol">=</span> %fstRef(ref)
-</div></div><div class="cell"><div class="code-block"><span class="keyword">def</span> snd_ref(ref<span class="symbol">:</span> <span class="type-name">Ref</span> h (a<span class="symbol">,</span>b)) <span class="symbol">-&gt;</span> <span class="type-name">Ref</span> h b <span class="keyword">given</span> (a<span class="symbol">,</span> b<span class="symbol">|</span><span class="type-name">Data</span><span class="symbol">,</span> h) <span class="symbol">=</span> %sndRef(ref)
+</div></div><div class="cell"><div class="code-block"><span class="keyword">def</span> fst_ref(ref<span class="symbol">:</span> <span class="type-name">Ref</span> h (a<span class="symbol">,</span>b)) <span class="symbol">-&gt;</span> <span class="type-name">Ref</span> h a <span class="keyword">given</span> (b<span class="symbol">,</span> a<span class="symbol">|</span><span class="type-name">Data</span><span class="symbol">,</span> h) <span class="symbol">=</span> ref<span class="symbol">.</span>0
+</div></div><div class="cell"><div class="code-block"><span class="keyword">def</span> snd_ref(ref<span class="symbol">:</span> <span class="type-name">Ref</span> h (a<span class="symbol">,</span>b)) <span class="symbol">-&gt;</span> <span class="type-name">Ref</span> h b <span class="keyword">given</span> (a<span class="symbol">,</span> b<span class="symbol">|</span><span class="type-name">Data</span><span class="symbol">,</span> h) <span class="symbol">=</span> ref<span class="symbol">.</span>1
 </div></div><div class="cell"><div class="code-block">
 </div></div><div class="cell"><div class="code-block"><span class="keyword">def</span> run_reader(
     init<span class="command">:r</span><span class="symbol">,</span>
@@ -972,7 +975,7 @@ Monoids support <code>fold</code> operations, and similar.</li>
   <span class="keyword">def</span> explicitAction(h&#39;<span class="symbol">:</span><span class="type-name">Heap</span><span class="symbol">,</span> ref<span class="symbol">:</span><span class="type-name">Ref</span> h&#39; r) <span class="symbol">-&gt;</span> {<span class="type-name">Read</span> h&#39;<span class="symbol">|</span>eff} a <span class="symbol">=</span> action ref
   %runReader(init<span class="symbol">,</span> explicitAction)
 </div></div><div class="cell"><div class="code-block">
-</div></div><div class="cell"><div class="code-block"><span class="keyword">def</span> with_reader(
+</div></div><div class="cell"><div class="code-block"><span class="keyword">def</span> <span class="keyword">with</span>_reader(
     init<span class="command">:r</span><span class="symbol">,</span>
     action<span class="symbol">:</span> (<span class="keyword">given</span> (h)<span class="symbol">,</span> <span class="type-name">Ref</span>(h<span class="symbol">,</span>r)) <span class="symbol">-&gt;</span> {<span class="type-name">Read</span> h<span class="symbol">|</span>eff} a
     ) <span class="symbol">-&gt;</span> {<span class="symbol">|</span>eff} a  <span class="keyword">given</span> (r<span class="symbol">|</span><span class="type-name">Data</span><span class="symbol">,</span> a<span class="symbol">,</span> eff) <span class="symbol">=</span>
@@ -1008,7 +1011,7 @@ Monoids support <code>fold</code> operations, and similar.</li>
   <span class="keyword">def</span> explicitAction(h&#39;<span class="symbol">:</span><span class="type-name">Heap</span><span class="symbol">,</span> ref<span class="symbol">:</span><span class="type-name">Ref</span> h&#39; s) <span class="symbol">-&gt;</span> {<span class="type-name">State</span> h&#39;<span class="symbol">|</span>eff} a <span class="symbol">=</span> action ref
   %runState(init<span class="symbol">,</span> explicitAction)
 </div></div><div class="cell"><div class="code-block">
-</div></div><div class="cell"><div class="code-block"><span class="keyword">def</span> with_state(
+</div></div><div class="cell"><div class="code-block"><span class="keyword">def</span> <span class="keyword">with</span>_state(
     init<span class="command">:s</span><span class="symbol">,</span>
     action<span class="symbol">:</span> (<span class="keyword">given</span> (h)<span class="symbol">,</span> <span class="type-name">Ref</span> h s) <span class="symbol">-&gt;</span> {<span class="type-name">State</span> h <span class="symbol">|</span>eff} a
     ) <span class="symbol">-&gt;</span> {<span class="symbol">|</span>eff} a  <span class="keyword">given</span> (a<span class="symbol">,</span> s<span class="symbol">|</span><span class="type-name">Data</span><span class="symbol">,</span> eff) <span class="symbol">=</span>
@@ -1261,7 +1264,7 @@ i.e. things that can be compared to other things to find if larger, smaller or e
   <span class="keyword">def</span> unsafe_project&#39;(x) <span class="symbol">=</span> unsafe_project <span class="symbol">$</span> unsafe_project(to<span class="symbol">=</span>b<span class="symbol">,</span> x)
 </div></div><div class="cell"><div class="code-block">
 </div></div><div class="cell"><div class="code-block"><span class="keyword">def</span> unsafe_project_rangefrom(j<span class="command">:q</span>) <span class="symbol">-&gt;</span> <span class="type-name">RangeFrom</span>(q<span class="symbol">,</span> i) <span class="keyword">given</span> (q<span class="symbol">|</span><span class="type-name">Ix</span><span class="symbol">,</span> i<span class="command">:q</span>) <span class="symbol">=</span>
-  <span class="type-name">RangeFrom</span><span class="symbol">.</span>new unsafe_nat_diff(ordinal j<span class="symbol">,</span> ordinal i)
+  <span class="type-name">RangeFrom</span> unsafe_nat_diff(ordinal j<span class="symbol">,</span> ordinal i)
 </div></div><div class="cell"><div class="code-block">
 </div></div><div class="cell"><div class="code-block"><span class="keyword">instance</span> <span class="type-name">Subset</span>(<span class="type-name">RangeFrom</span>(q<span class="symbol">,</span> i)<span class="symbol">,</span> q) <span class="keyword">given</span> (q<span class="symbol">|</span><span class="type-name">Ix</span><span class="symbol">,</span> i<span class="command">:q</span>)
   <span class="keyword">def</span> inject&#39;(j) <span class="symbol">=</span>
@@ -1271,8 +1274,8 @@ i.e. things that can be compared to other things to find if larger, smaller or e
     i&#39; <span class="symbol">=</span> ordinal i
     <span class="keyword">if</span> j&#39; <span class="symbol">&lt;</span> i&#39;
       <span class="keyword">then</span> <span class="type-name">Nothing</span>
-      <span class="keyword">else</span> <span class="type-name">Just</span> <span class="symbol">$</span> <span class="type-name">RangeFrom</span><span class="symbol">.</span>new <span class="symbol">$</span> unsafe_nat_diff(j&#39;<span class="symbol">,</span> i&#39;)
-  <span class="keyword">def</span> unsafe_project&#39;(j) <span class="symbol">=</span> <span class="type-name">RangeFrom</span><span class="symbol">.</span>new unsafe_nat_diff(ordinal j<span class="symbol">,</span> ordinal i)
+      <span class="keyword">else</span> <span class="type-name">Just</span> <span class="symbol">$</span> <span class="type-name">RangeFrom</span> <span class="symbol">$</span> unsafe_nat_diff(j&#39;<span class="symbol">,</span> i&#39;)
+  <span class="keyword">def</span> unsafe_project&#39;(j) <span class="symbol">=</span> <span class="type-name">RangeFrom</span> unsafe_nat_diff(ordinal j<span class="symbol">,</span> ordinal i)
 </div></div><div class="cell"><div class="code-block">
 </div></div><div class="cell"><div class="code-block"><span class="keyword">instance</span> <span class="type-name">Subset</span>(<span class="type-name">RangeFromExc</span>(q<span class="symbol">,</span> i)<span class="symbol">,</span> q) <span class="keyword">given</span> (q<span class="symbol">|</span><span class="type-name">Ix</span><span class="symbol">,</span> i<span class="command">:q</span>)
   <span class="keyword">def</span> inject&#39;(j) <span class="symbol">=</span> unsafe_from_ordinal <span class="symbol">$</span> j<span class="symbol">.</span>val <span class="symbol">+</span> ordinal i <span class="symbol">+</span> 1
@@ -1281,9 +1284,9 @@ i.e. things that can be compared to other things to find if larger, smaller or e
     i&#39; <span class="symbol">=</span> ordinal i
     <span class="keyword">if</span> j&#39; <span class="symbol">&lt;=</span> i&#39;
       <span class="keyword">then</span> <span class="type-name">Nothing</span>
-      <span class="keyword">else</span> <span class="type-name">Just</span> <span class="symbol">$</span> <span class="type-name">RangeFromExc</span><span class="symbol">.</span>new unsafe_nat_diff(j&#39;<span class="symbol">,</span> i&#39; <span class="symbol">+</span> 1)
+      <span class="keyword">else</span> <span class="type-name">Just</span> <span class="symbol">$</span> <span class="type-name">RangeFromExc</span> unsafe_nat_diff(j&#39;<span class="symbol">,</span> i&#39; <span class="symbol">+</span> 1)
   <span class="keyword">def</span> unsafe_project&#39;(j) <span class="symbol">=</span>
-    <span class="type-name">RangeFromExc</span><span class="symbol">.</span>new unsafe_nat_diff(ordinal j<span class="symbol">,</span> ordinal i <span class="symbol">+</span> 1)
+    <span class="type-name">RangeFromExc</span> unsafe_nat_diff(ordinal j<span class="symbol">,</span> ordinal i <span class="symbol">+</span> 1)
 </div></div><div class="cell"><div class="code-block">
 </div></div><div class="cell"><div class="code-block"><span class="keyword">instance</span> <span class="type-name">Subset</span>(<span class="type-name">RangeTo</span>(q<span class="symbol">,</span> i)<span class="symbol">,</span> q) <span class="keyword">given</span> (q<span class="symbol">|</span><span class="type-name">Ix</span><span class="symbol">,</span> i<span class="command">:q</span>)
   <span class="keyword">def</span> inject&#39;(j) <span class="symbol">=</span> unsafe_from_ordinal j<span class="symbol">.</span>val
@@ -1292,8 +1295,8 @@ i.e. things that can be compared to other things to find if larger, smaller or e
     i&#39; <span class="symbol">=</span> ordinal i
     <span class="keyword">if</span> j&#39; <span class="symbol">&gt;</span> i&#39;
       <span class="keyword">then</span> <span class="type-name">Nothing</span>
-      <span class="keyword">else</span> <span class="type-name">Just</span> <span class="symbol">$</span> <span class="type-name">RangeTo</span><span class="symbol">.</span>new j&#39;
-  <span class="keyword">def</span> unsafe_project&#39;(j) <span class="symbol">=</span> <span class="type-name">RangeTo</span><span class="symbol">.</span>new (ordinal j)
+      <span class="keyword">else</span> <span class="type-name">Just</span> <span class="symbol">$</span> <span class="type-name">RangeTo</span> j&#39;
+  <span class="keyword">def</span> unsafe_project&#39;(j) <span class="symbol">=</span> <span class="type-name">RangeTo</span> (ordinal j)
 </div></div><div class="cell"><div class="code-block">
 </div></div><div class="cell"><div class="code-block"><span class="keyword">instance</span> <span class="type-name">Subset</span>(<span class="type-name">RangeToExc</span>(q<span class="symbol">,</span> i)<span class="symbol">,</span> q) <span class="keyword">given</span> (q<span class="symbol">|</span><span class="type-name">Ix</span><span class="symbol">,</span> i<span class="command">:q</span>)
   <span class="keyword">def</span> inject&#39;(j) <span class="symbol">=</span> unsafe_from_ordinal j<span class="symbol">.</span>val
@@ -1302,8 +1305,8 @@ i.e. things that can be compared to other things to find if larger, smaller or e
     i&#39; <span class="symbol">=</span> ordinal i
     <span class="keyword">if</span> j&#39; <span class="symbol">&gt;=</span> i&#39;
       <span class="keyword">then</span> <span class="type-name">Nothing</span>
-      <span class="keyword">else</span> <span class="type-name">Just</span> <span class="symbol">$</span> <span class="type-name">RangeToExc</span><span class="symbol">.</span>new j&#39;
-  <span class="keyword">def</span> unsafe_project&#39;(j) <span class="symbol">=</span> <span class="type-name">RangeToExc</span><span class="symbol">.</span>new (ordinal j)
+      <span class="keyword">else</span> <span class="type-name">Just</span> <span class="symbol">$</span> <span class="type-name">RangeToExc</span> j&#39;
+  <span class="keyword">def</span> unsafe_project&#39;(j) <span class="symbol">=</span> <span class="type-name">RangeToExc</span> (ordinal j)
 </div></div><div class="cell"><div class="code-block">
 </div></div><div class="cell"><div class="code-block"><span class="keyword">instance</span> <span class="type-name">Subset</span>(<span class="type-name">RangeToExc</span>(q<span class="symbol">,</span> i)<span class="symbol">,</span> <span class="type-name">RangeTo</span>(q<span class="symbol">,</span> i)) <span class="keyword">given</span> (q<span class="symbol">|</span><span class="type-name">Ix</span><span class="symbol">,</span> i<span class="command">:q</span>)
   <span class="keyword">def</span> inject&#39;(j) <span class="symbol">=</span> unsafe_from_ordinal j<span class="symbol">.</span>val
@@ -1312,8 +1315,8 @@ i.e. things that can be compared to other things to find if larger, smaller or e
     i&#39; <span class="symbol">=</span> ordinal i
     <span class="keyword">if</span> j&#39; <span class="symbol">&gt;=</span> i&#39;
       <span class="keyword">then</span> <span class="type-name">Nothing</span>
-      <span class="keyword">else</span> <span class="type-name">Just</span> <span class="symbol">$</span> <span class="type-name">RangeToExc</span><span class="symbol">.</span>new j&#39;
-  <span class="keyword">def</span> unsafe_project&#39;(j) <span class="symbol">=</span> <span class="type-name">RangeToExc</span><span class="symbol">.</span>new (ordinal j)
+      <span class="keyword">else</span> <span class="type-name">Just</span> <span class="symbol">$</span> <span class="type-name">RangeToExc</span> j&#39;
+  <span class="keyword">def</span> unsafe_project&#39;(j) <span class="symbol">=</span> <span class="type-name">RangeToExc</span> (ordinal j)
 </div></div><div class="cell"><div class="code-block">
 </div></div><div class="cell"><div class="prose-block"><h2>Elementary/Special Functions</h2>
 <p>This is more or less the standard <a href="https://en.wikipedia.org/wiki/C_mathematical_functions">LibM fare</a>.
@@ -1405,7 +1408,7 @@ Many, but not all of these functions are <a href="https://en.wikipedia.org/wiki/
 </div></div><div class="cell"><div class="code-block"><span class="keyword">struct</span> <span class="type-name">Ptr</span>(a<span class="symbol">:</span><span class="type-name">Type</span>) <span class="symbol">=</span>
   val <span class="symbol">:</span> <span class="type-name">RawPtr</span>
 </div></div><div class="cell"><div class="code-block">
-</div></div><div class="cell"><div class="code-block"><span class="keyword">def</span> cast_ptr(ptr<span class="symbol">:</span> <span class="type-name">Ptr</span> a) <span class="symbol">-&gt;</span> <span class="type-name">Ptr</span> b <span class="keyword">given</span> (a<span class="symbol">,</span> b) <span class="symbol">=</span> <span class="type-name">Ptr</span><span class="symbol">.</span>new(ptr<span class="symbol">.</span>val)
+</div></div><div class="cell"><div class="code-block"><span class="keyword">def</span> cast_ptr(ptr<span class="symbol">:</span> <span class="type-name">Ptr</span> a) <span class="symbol">-&gt;</span> <span class="type-name">Ptr</span> b <span class="keyword">given</span> (a<span class="symbol">,</span> b) <span class="symbol">=</span> <span class="type-name">Ptr</span>(ptr<span class="symbol">.</span>val)
 </div></div><div class="cell"><div class="code-block">
 </div></div><div class="cell"><div class="code-block"><span class="keyword">interface</span> <span class="type-name">Storable</span>(a<span class="symbol">|</span><span class="type-name">Data</span>)
   store <span class="symbol">:</span> (<span class="type-name">Ptr</span> a<span class="symbol">,</span> a) <span class="symbol">-&gt;</span> {<span class="type-name">IO</span>} ()
@@ -1433,26 +1436,26 @@ Many, but not all of these functions are <a href="https://en.wikipedia.org/wiki/
   <span class="keyword">def</span> storage_size() <span class="symbol">=</span> 4
 </div></div><div class="cell"><div class="code-block">
 </div></div><div class="cell"><div class="code-block"><span class="keyword">instance</span> <span class="type-name">Storable</span>(<span class="type-name">Nat</span>)
-  <span class="keyword">def</span> store(ptr<span class="symbol">,</span> x) <span class="symbol">=</span> store(<span class="type-name">Ptr</span><span class="symbol">.</span>new(ptr<span class="symbol">.</span>val)<span class="symbol">,</span> nat_to_rep x)
-  <span class="keyword">def</span> load(ptr) <span class="symbol">=</span> rep_to_nat <span class="symbol">$</span> load(<span class="type-name">Ptr</span><span class="symbol">.</span>new(ptr<span class="symbol">.</span>val))
+  <span class="keyword">def</span> store(ptr<span class="symbol">,</span> x) <span class="symbol">=</span> store(<span class="type-name">Ptr</span>(ptr<span class="symbol">.</span>val)<span class="symbol">,</span> nat_to_rep x)
+  <span class="keyword">def</span> load(ptr) <span class="symbol">=</span> rep_to_nat <span class="symbol">$</span> load(<span class="type-name">Ptr</span>(ptr<span class="symbol">.</span>val))
   <span class="keyword">def</span> storage_size() <span class="symbol">=</span> storage_size(a<span class="symbol">=</span><span class="type-name">NatRep</span>)
 </div></div><div class="cell"><div class="code-block">
 </div></div><div class="cell"><div class="code-block"><span class="keyword">instance</span> <span class="type-name">Storable</span>(<span class="type-name">Ptr</span> a) <span class="keyword">given</span> (a)
   <span class="keyword">def</span> store(ptr<span class="symbol">,</span> x) <span class="symbol">=</span> %ptrStore(internal_cast(to<span class="symbol">=</span>%<span class="type-name">PtrPtr</span>()<span class="symbol">,</span> ptr<span class="symbol">.</span>val)<span class="symbol">,</span> x<span class="symbol">.</span>val)
-  <span class="keyword">def</span> load(ptr) <span class="symbol">=</span> <span class="type-name">Ptr</span><span class="symbol">.</span>new(%ptrLoad(internal_cast(to<span class="symbol">=</span>%<span class="type-name">PtrPtr</span>()<span class="symbol">,</span> ptr)))
+  <span class="keyword">def</span> load(ptr) <span class="symbol">=</span> <span class="type-name">Ptr</span>(%ptrLoad(internal_cast(to<span class="symbol">=</span>%<span class="type-name">PtrPtr</span>()<span class="symbol">,</span> ptr)))
   <span class="keyword">def</span> storage_size() <span class="symbol">=</span> 8  <span class="comment">-- TODO: something more portable?
 </span></div></div><div class="cell"><div class="code-block">
 </div></div><div class="cell"><div class="code-block"><span class="comment">-- TODO: Storable instances for other types
 </span></div></div><div class="cell"><div class="code-block">
 </div></div><div class="cell"><div class="code-block"><span class="keyword">def</span> malloc(n<span class="symbol">:</span><span class="type-name">Nat</span>) <span class="symbol">-&gt;</span> {<span class="type-name">IO</span>} (<span class="type-name">Ptr</span> a) <span class="keyword">given</span> (a<span class="symbol">|</span><span class="type-name">Storable</span>)  <span class="symbol">=</span>
   numBytes <span class="symbol">=</span> storage_size(a<span class="symbol">=</span>a) <span class="symbol">*</span> n
-  <span class="type-name">Ptr</span><span class="symbol">.</span>new(%alloc(nat_to_rep numBytes))
+  <span class="type-name">Ptr</span>(%alloc(nat_to_rep numBytes))
 </div></div><div class="cell"><div class="code-block">
 </div></div><div class="cell"><div class="code-block"><span class="keyword">def</span> free(ptr<span class="symbol">:</span><span class="type-name">Ptr</span> a) <span class="symbol">-&gt;</span> {<span class="type-name">IO</span>} () <span class="keyword">given</span> (a) <span class="symbol">=</span> %free(ptr<span class="symbol">.</span>val)
 </div></div><div class="cell"><div class="code-block">
 </div></div><div class="cell"><div class="code-block"><span class="keyword">def</span> (<span class="symbol">+&gt;&gt;</span>)(ptr<span class="symbol">:</span><span class="type-name">Ptr</span> a<span class="symbol">,</span> i<span class="symbol">:</span><span class="type-name">Nat</span>) <span class="symbol">-&gt;</span> <span class="type-name">Ptr</span> a <span class="keyword">given</span> (a<span class="symbol">|</span><span class="type-name">Storable</span>) <span class="symbol">=</span>
   i&#39; <span class="symbol">=</span> nat_to_rep <span class="symbol">$</span> i <span class="symbol">*</span> storage_size(a<span class="symbol">=</span>a)
-  <span class="type-name">Ptr</span><span class="symbol">.</span>new(%ptrOffset(ptr<span class="symbol">.</span>val<span class="symbol">,</span> i&#39;))
+  <span class="type-name">Ptr</span>(%ptrOffset(ptr<span class="symbol">.</span>val<span class="symbol">,</span> i&#39;))
 </div></div><div class="cell"><div class="code-block">
 </div></div><div class="cell"><div class="code-block"><span class="comment">-- TODO: consider making a Storable instance for tables instead
 </span></div></div><div class="cell"><div class="code-block"><span class="keyword">def</span> store_table(ptr<span class="symbol">:</span> <span class="type-name">Ptr</span> a<span class="symbol">,</span> tab<span class="command">:n</span><span class="symbol">=&gt;</span>a) <span class="symbol">-&gt;</span> {<span class="type-name">IO</span>} () <span class="keyword">given</span> (a<span class="symbol">|</span><span class="type-name">Storable</span><span class="symbol">,</span> n<span class="symbol">|</span><span class="type-name">Ix</span>) <span class="symbol">=</span>
@@ -1465,7 +1468,7 @@ Many, but not all of these functions are <a href="https://en.wikipedia.org/wiki/
 </div></div><div class="cell"><div class="code-block">
 </div></div><div class="cell"><div class="code-block"><span class="comment">-- TODO: generalize these brackets to allow other effects
 </span></div></div><div class="cell"><div class="code-block"><span class="comment">-- TODO: make sure that freeing happens even if there are run-time errors
-</span></div></div><div class="cell"><div class="code-block"><span class="keyword">def</span> with_alloc(
+</span></div></div><div class="cell"><div class="code-block"><span class="keyword">def</span> <span class="keyword">with</span>_alloc(
     n<span class="symbol">:</span><span class="type-name">Nat</span><span class="symbol">,</span>
     action<span class="symbol">:</span> (<span class="type-name">Ptr</span> a) <span class="symbol">-&gt;</span> {<span class="type-name">IO</span>} b
     ) <span class="symbol">-&gt;</span> {<span class="type-name">IO</span>} b  <span class="keyword">given</span> (a<span class="symbol">|</span><span class="type-name">Storable</span><span class="symbol">,</span>  b) <span class="symbol">=</span>
@@ -1474,11 +1477,11 @@ Many, but not all of these functions are <a href="https://en.wikipedia.org/wiki/
   free ptr
   result
 </div></div><div class="cell"><div class="code-block">
-</div></div><div class="cell"><div class="code-block"><span class="keyword">def</span> with_table_ptr(
+</div></div><div class="cell"><div class="code-block"><span class="keyword">def</span> <span class="keyword">with</span>_table_ptr(
     xs<span class="command">:n</span><span class="symbol">=&gt;</span>a<span class="symbol">,</span>
     action<span class="symbol">:</span> (<span class="type-name">Ptr</span> a) <span class="symbol">-&gt;</span> {<span class="type-name">IO</span>} b
     ) <span class="symbol">-&gt;</span> {<span class="type-name">IO</span>} b  <span class="keyword">given</span> (a<span class="symbol">|</span><span class="type-name">Storable</span><span class="symbol">,</span> b<span class="symbol">,</span> n<span class="symbol">|</span><span class="type-name">Ix</span>) <span class="symbol">=</span>
-  ptr <span class="symbol">&lt;-</span> with_alloc(size n)
+  ptr <span class="symbol">&lt;-</span> <span class="keyword">with</span>_alloc(size n)
   <span class="keyword">for</span> i<span class="symbol">.</span> store(ptr <span class="symbol">+&gt;&gt;</span> ordinal i<span class="symbol">,</span> xs[i])
   action ptr
 </div></div><div class="cell"><div class="code-block">
@@ -1502,6 +1505,8 @@ Many, but not all of these functions are <a href="https://en.wikipedia.org/wiki/
 </div></div><div class="cell"><div class="code-block"><span class="keyword">def</span> sq(x<span class="command">:a</span>) <span class="symbol">-&gt;</span> a <span class="keyword">given</span> (a<span class="symbol">|</span><span class="type-name">Mul</span>) <span class="symbol">=</span> x <span class="symbol">*</span> x
 </div></div><div class="cell"><div class="code-block"><span class="keyword">def</span> abs(x<span class="command">:a</span>) <span class="symbol">-&gt;</span> a <span class="keyword">given</span> (a<span class="symbol">|</span><span class="type-name">Sub</span><span class="symbol">|</span><span class="type-name">Ord</span>) <span class="symbol">=</span> select(x <span class="symbol">&gt;</span> zero<span class="symbol">,</span> x<span class="symbol">,</span> zero <span class="symbol">-</span> x)
 </div></div><div class="cell"><div class="code-block"><span class="keyword">def</span> mod(x<span class="command">:a</span><span class="symbol">,</span> y<span class="command">:a</span>) <span class="symbol">-&gt;</span> a <span class="keyword">given</span> (a<span class="symbol">|</span><span class="type-name">Add</span><span class="symbol">|</span><span class="type-name">Integral</span>) <span class="symbol">=</span> rem(y <span class="symbol">+</span> rem(x<span class="symbol">,</span> y)<span class="symbol">,</span> y)
+</div></div><div class="cell"><div class="code-block"><span class="keyword">def</span> (<span class="symbol">&gt;&gt;&gt;</span>)(f<span class="symbol">:</span>(a) <span class="symbol">-&gt;</span> b<span class="symbol">,</span> g<span class="symbol">:</span>(b) <span class="symbol">-&gt;</span> c) <span class="symbol">-&gt;</span> (a) <span class="symbol">-&gt;</span> c <span class="keyword">given</span> (a<span class="symbol">,</span> b<span class="symbol">,</span> c) <span class="symbol">=</span> <span class="symbol">\</span>x<span class="symbol">.</span> g(f(x))
+</div></div><div class="cell"><div class="code-block"><span class="keyword">def</span> (<span class="symbol">&lt;&lt;&lt;</span>)(f<span class="symbol">:</span>(b) <span class="symbol">-&gt;</span> c<span class="symbol">,</span> g<span class="symbol">:</span>(a) <span class="symbol">-&gt;</span> b) <span class="symbol">-&gt;</span> (a) <span class="symbol">-&gt;</span> c <span class="keyword">given</span> (a<span class="symbol">,</span> b<span class="symbol">,</span> c) <span class="symbol">=</span> <span class="symbol">\</span>x<span class="symbol">.</span> f(g(x))
 </div></div><div class="cell"><div class="code-block">
 </div></div><div class="cell"><div class="prose-block"><h2>Table Operations</h2>
 </div></div><div class="cell"><div class="code-block"><span class="keyword">instance</span> <span class="type-name">Floating</span>(n<span class="symbol">=&gt;</span>a) <span class="keyword">given</span> (a<span class="symbol">|</span><span class="type-name">Floating</span><span class="symbol">,</span> n<span class="symbol">|</span><span class="type-name">Ix</span>)
@@ -1554,14 +1559,14 @@ Many, but not all of these functions are <a href="https://en.wikipedia.org/wiki/
 <p>TODO: Move this to be with reductions?
 It's a kind of <code>scan</code>.</p>
 </div></div><div class="cell"><div class="code-block"><span class="keyword">def</span> cumsum(xs<span class="symbol">:</span> n<span class="symbol">=&gt;</span>a) <span class="symbol">-&gt;</span> n<span class="symbol">=&gt;</span>a <span class="keyword">given</span> (n<span class="symbol">|</span><span class="type-name">Ix</span><span class="symbol">,</span> a<span class="symbol">|</span><span class="type-name">Add</span>) <span class="symbol">=</span>
-  total <span class="symbol">&lt;-</span> with_state zero
+  total <span class="symbol">&lt;-</span> <span class="keyword">with</span>_state zero
   <span class="keyword">for</span> i<span class="symbol">.</span>
     newTotal <span class="symbol">=</span> get total <span class="symbol">+</span> xs[i]
     total <span class="symbol">:=</span> newTotal
     newTotal
 </div></div><div class="cell"><div class="code-block">
 </div></div><div class="cell"><div class="code-block"><span class="keyword">def</span> cumsum_low(xs<span class="symbol">:</span> n<span class="symbol">=&gt;</span>a) <span class="symbol">-&gt;</span> n<span class="symbol">=&gt;</span>a <span class="keyword">given</span> (n<span class="symbol">|</span><span class="type-name">Ix</span><span class="symbol">,</span> a<span class="symbol">|</span><span class="type-name">Add</span>) <span class="symbol">=</span>
-  total <span class="symbol">&lt;-</span> with_state zero
+  total <span class="symbol">&lt;-</span> <span class="keyword">with</span>_state zero
   <span class="keyword">for</span> i<span class="symbol">.</span>
     oldTotal <span class="symbol">=</span> get total
     total <span class="symbol">:=</span> oldTotal <span class="symbol">+</span> xs[i]
@@ -1708,15 +1713,15 @@ It's a kind of <code>scan</code>.</p>
   max_size <span class="symbol">:</span> <span class="type-name">Ptr</span> <span class="type-name">Nat</span>
   buffer   <span class="symbol">:</span> <span class="type-name">Ptr</span> (<span class="type-name">Ptr</span> a)
 </div></div><div class="cell"><div class="code-block">
-</div></div><div class="cell"><div class="code-block"><span class="keyword">def</span> with_dynamic_buffer(action<span class="symbol">:</span> (<span class="type-name">DynBuffer</span> a) <span class="symbol">-&gt;</span> {<span class="type-name">IO</span>} b) <span class="symbol">-&gt;</span> {<span class="type-name">IO</span>} b <span class="keyword">given</span> (a<span class="symbol">|</span><span class="type-name">Storable</span><span class="symbol">,</span> b) <span class="symbol">=</span>
+</div></div><div class="cell"><div class="code-block"><span class="keyword">def</span> <span class="keyword">with</span>_dynamic_buffer(action<span class="symbol">:</span> (<span class="type-name">DynBuffer</span> a) <span class="symbol">-&gt;</span> {<span class="type-name">IO</span>} b) <span class="symbol">-&gt;</span> {<span class="type-name">IO</span>} b <span class="keyword">given</span> (a<span class="symbol">|</span><span class="type-name">Storable</span><span class="symbol">,</span> b) <span class="symbol">=</span>
   initMaxSize <span class="symbol">=</span> 256
-  sizePtr <span class="symbol">&lt;-</span> with_alloc 1
+  sizePtr <span class="symbol">&lt;-</span> <span class="keyword">with</span>_alloc 1
   store(sizePtr<span class="symbol">,</span> 0)
-  maxSizePtr <span class="symbol">&lt;-</span> with_alloc 1
+  maxSizePtr <span class="symbol">&lt;-</span> <span class="keyword">with</span>_alloc 1
   store(maxSizePtr<span class="symbol">,</span> initMaxSize)
-  bufferPtr <span class="symbol">&lt;-</span> with_alloc 1
+  bufferPtr <span class="symbol">&lt;-</span> <span class="keyword">with</span>_alloc 1
   store(bufferPtr<span class="symbol">,</span> malloc initMaxSize)
-  result <span class="symbol">=</span> action <span class="symbol">$</span> <span class="type-name">DynBuffer</span><span class="symbol">.</span>new(sizePtr<span class="symbol">,</span> maxSizePtr<span class="symbol">,</span> bufferPtr)
+  result <span class="symbol">=</span> action <span class="symbol">$</span> <span class="type-name">DynBuffer</span>(sizePtr<span class="symbol">,</span> maxSizePtr<span class="symbol">,</span> bufferPtr)
   free <span class="symbol">$</span> load bufferPtr
   result
 </div></div><div class="cell"><div class="code-block">
@@ -1766,12 +1771,12 @@ It's a kind of <code>scan</code>.</p>
   ptr <span class="symbol">:</span>  <span class="type-name">RawPtr</span>
 </div></div><div class="cell"><div class="code-block">
 </div></div><div class="cell"><div class="code-block"><span class="comment">-- TODO: check the string contains no nulls
-</span></div></div><div class="cell"><div class="code-block"><span class="keyword">def</span> with_c_string(
+</span></div></div><div class="cell"><div class="code-block"><span class="keyword">def</span> <span class="keyword">with</span>_c_string(
     s<span class="symbol">:</span><span class="type-name">String</span><span class="symbol">,</span>
     action<span class="symbol">:</span> (<span class="type-name">CString</span>) <span class="symbol">-&gt;</span> {<span class="type-name">IO</span>} a
     ) <span class="symbol">-&gt;</span> {<span class="type-name">IO</span>} a <span class="keyword">given</span> (a) <span class="symbol">=</span>
   <span class="type-name">AsList</span>(n<span class="symbol">,</span> s&#39;) <span class="symbol">=</span> s <span class="symbol">&lt;&gt;</span> &quot;<span class="symbol">\</span><span class="type-name">NUL</span>&quot;
-  with_table_ptr s&#39; <span class="symbol">\</span>ptr<span class="symbol">.</span> action <span class="symbol">$</span> <span class="type-name">CString</span><span class="symbol">.</span>new(ptr<span class="symbol">.</span>val)
+  <span class="keyword">with</span>_table_ptr s&#39; <span class="symbol">\</span>ptr<span class="symbol">.</span> action <span class="type-name">CString</span>(ptr<span class="symbol">.</span>val)
 </div></div><div class="cell"><div class="code-block">
 </div></div><div class="cell"><div class="prose-block"><h3>Show interface</h3>
 <p>For things that can be shown.
@@ -1790,14 +1795,14 @@ Nor does it promise a particular level of precision for numeric values.</p>
 </div></div><div class="cell"><div class="code-block"><span class="keyword">instance</span> <span class="type-name">Show</span>(<span class="type-name">Int32</span>)
   <span class="keyword">def</span> show(x) <span class="symbol">=</span> unsafe_io <span class="symbol">\.</span>
     (n<span class="symbol">,</span> ptr) <span class="symbol">=</span> showInt32 x
-    string_from_char_ptr(n<span class="symbol">,</span> <span class="type-name">Ptr</span><span class="symbol">.</span>new ptr)
+    string_from_char_ptr(n<span class="symbol">,</span> <span class="type-name">Ptr</span> ptr)
 </div></div><div class="cell"><div class="code-block">
 </div></div><div class="cell"><div class="code-block"><span class="keyword">foreign</span> &quot;showInt64&quot; showInt64 <span class="symbol">:</span> (<span class="type-name">Int64</span>) <span class="symbol">-&gt;</span> {<span class="type-name">IO</span>} (<span class="type-name">Word32</span><span class="symbol">,</span> <span class="type-name">RawPtr</span>)
 </div></div><div class="cell"><div class="code-block">
 </div></div><div class="cell"><div class="code-block"><span class="keyword">instance</span> <span class="type-name">Show</span>(<span class="type-name">Int64</span>)
   <span class="keyword">def</span> show(x) <span class="symbol">=</span> unsafe_io <span class="symbol">\.</span>
     (n<span class="symbol">,</span> ptr) <span class="symbol">=</span> showInt64 x
-    string_from_char_ptr(n<span class="symbol">,</span> <span class="type-name">Ptr</span><span class="symbol">.</span>new ptr)
+    string_from_char_ptr(n<span class="symbol">,</span> <span class="type-name">Ptr</span> ptr)
 </div></div><div class="cell"><div class="code-block">
 </div></div><div class="cell"><div class="code-block"><span class="keyword">instance</span> <span class="type-name">Show</span>(<span class="type-name">Nat</span>)
   <span class="keyword">def</span> show(x) <span class="symbol">=</span> show <span class="symbol">$</span> n_to_i64 x
@@ -1807,32 +1812,32 @@ Nor does it promise a particular level of precision for numeric values.</p>
 </div></div><div class="cell"><div class="code-block"><span class="keyword">instance</span> <span class="type-name">Show</span>(<span class="type-name">Float32</span>)
   <span class="keyword">def</span> show(x) <span class="symbol">=</span> unsafe_io <span class="symbol">\.</span>
     (n<span class="symbol">,</span> ptr) <span class="symbol">=</span> showFloat32 x
-    string_from_char_ptr(n<span class="symbol">,</span> <span class="type-name">Ptr</span><span class="symbol">.</span>new ptr)
+    string_from_char_ptr(n<span class="symbol">,</span> <span class="type-name">Ptr</span> ptr)
 </div></div><div class="cell"><div class="code-block">
 </div></div><div class="cell"><div class="code-block"><span class="keyword">foreign</span> &quot;showFloat64&quot; showFloat64 <span class="symbol">:</span> (<span class="type-name">Float64</span>) <span class="symbol">-&gt;</span> {<span class="type-name">IO</span>} (<span class="type-name">Word32</span><span class="symbol">,</span> <span class="type-name">RawPtr</span>)
 </div></div><div class="cell"><div class="code-block">
 </div></div><div class="cell"><div class="code-block"><span class="keyword">instance</span> <span class="type-name">Show</span>(<span class="type-name">Float64</span>)
   <span class="keyword">def</span> show(x) <span class="symbol">=</span> unsafe_io <span class="symbol">\.</span>
     (n<span class="symbol">,</span> ptr) <span class="symbol">=</span> showFloat64 x
-    string_from_char_ptr(n<span class="symbol">,</span> <span class="type-name">Ptr</span><span class="symbol">.</span>new ptr)
+    string_from_char_ptr(n<span class="symbol">,</span> <span class="type-name">Ptr</span> ptr)
 </div></div><div class="cell"><div class="code-block">
 </div></div><div class="cell"><div class="code-block"><span class="keyword">instance</span> <span class="type-name">Show</span>(())
   <span class="keyword">def</span> show(_) <span class="symbol">=</span> &quot;()&quot;
 </div></div><div class="cell"><div class="code-block">
 </div></div><div class="cell"><div class="code-block"><span class="keyword">instance</span> <span class="type-name">Show</span>((a<span class="symbol">,</span> b)) <span class="keyword">given</span> (a<span class="symbol">|</span><span class="type-name">Show</span><span class="symbol">,</span> b<span class="symbol">|</span><span class="type-name">Show</span>)
-  <span class="keyword">def</span> show(x) <span class="symbol">=</span>
-    (a<span class="symbol">,</span> b) <span class="symbol">=</span> x
-    &quot;(&quot; <span class="symbol">&lt;&gt;</span> show a <span class="symbol">&lt;&gt;</span> &quot;<span class="symbol">,</span> &quot; <span class="symbol">&lt;&gt;</span> show b <span class="symbol">&lt;&gt;</span> &quot;)&quot;
+  <span class="keyword">def</span> show(tup) <span class="symbol">=</span>
+    (x<span class="symbol">,</span> y) <span class="symbol">=</span> tup
+    &quot;(&quot; <span class="symbol">&lt;&gt;</span> show x <span class="symbol">&lt;&gt;</span> &quot;<span class="symbol">,</span> &quot; <span class="symbol">&lt;&gt;</span> show y <span class="symbol">&lt;&gt;</span> &quot;)&quot;
 </div></div><div class="cell"><div class="code-block">
 </div></div><div class="cell"><div class="code-block"><span class="keyword">instance</span> <span class="type-name">Show</span>((a<span class="symbol">,</span> b<span class="symbol">,</span> c)) <span class="keyword">given</span> (a<span class="symbol">|</span><span class="type-name">Show</span><span class="symbol">,</span> b<span class="symbol">|</span><span class="type-name">Show</span><span class="symbol">,</span> c<span class="symbol">|</span><span class="type-name">Show</span>)
-  <span class="keyword">def</span> show(x) <span class="symbol">=</span>
-    (a<span class="symbol">,</span> b<span class="symbol">,</span> c) <span class="symbol">=</span> x
-    &quot;(&quot; <span class="symbol">&lt;&gt;</span> show a <span class="symbol">&lt;&gt;</span> &quot;<span class="symbol">,</span> &quot; <span class="symbol">&lt;&gt;</span> show b <span class="symbol">&lt;&gt;</span> &quot;<span class="symbol">,</span> &quot; <span class="symbol">&lt;&gt;</span> show c <span class="symbol">&lt;&gt;</span> &quot;)&quot;
+  <span class="keyword">def</span> show(tup) <span class="symbol">=</span>
+    (x<span class="symbol">,</span> y<span class="symbol">,</span> z) <span class="symbol">=</span> tup
+    &quot;(&quot; <span class="symbol">&lt;&gt;</span> show x <span class="symbol">&lt;&gt;</span> &quot;<span class="symbol">,</span> &quot; <span class="symbol">&lt;&gt;</span> show y <span class="symbol">&lt;&gt;</span> &quot;<span class="symbol">,</span> &quot; <span class="symbol">&lt;&gt;</span> show z <span class="symbol">&lt;&gt;</span> &quot;)&quot;
 </div></div><div class="cell"><div class="code-block">
 </div></div><div class="cell"><div class="code-block"><span class="keyword">instance</span> <span class="type-name">Show</span>((a<span class="symbol">,</span> b<span class="symbol">,</span> c<span class="symbol">,</span> d)) <span class="keyword">given</span> (a<span class="symbol">|</span><span class="type-name">Show</span><span class="symbol">,</span> b<span class="symbol">|</span><span class="type-name">Show</span><span class="symbol">,</span> c<span class="symbol">|</span><span class="type-name">Show</span><span class="symbol">,</span> d<span class="symbol">|</span><span class="type-name">Show</span>)
-  <span class="keyword">def</span> show(x) <span class="symbol">=</span>
-    (a<span class="symbol">,</span> b<span class="symbol">,</span> c<span class="symbol">,</span> d) <span class="symbol">=</span> x
-    &quot;(&quot; <span class="symbol">&lt;&gt;</span> show a <span class="symbol">&lt;&gt;</span> &quot;<span class="symbol">,</span> &quot; <span class="symbol">&lt;&gt;</span> show b <span class="symbol">&lt;&gt;</span> &quot;<span class="symbol">,</span> &quot; <span class="symbol">&lt;&gt;</span> show c <span class="symbol">&lt;&gt;</span> &quot;<span class="symbol">,</span> &quot; <span class="symbol">&lt;&gt;</span> show d <span class="symbol">&lt;&gt;</span> &quot;)&quot;
+  <span class="keyword">def</span> show(tup) <span class="symbol">=</span>
+    (x<span class="symbol">,</span> y<span class="symbol">,</span> z<span class="symbol">,</span> w) <span class="symbol">=</span> tup
+    &quot;(&quot; <span class="symbol">&lt;&gt;</span> show x <span class="symbol">&lt;&gt;</span> &quot;<span class="symbol">,</span> &quot; <span class="symbol">&lt;&gt;</span> show y <span class="symbol">&lt;&gt;</span> &quot;<span class="symbol">,</span> &quot; <span class="symbol">&lt;&gt;</span> show z <span class="symbol">&lt;&gt;</span> &quot;<span class="symbol">,</span> &quot; <span class="symbol">&lt;&gt;</span> show w <span class="symbol">&lt;&gt;</span> &quot;)&quot;
 </div></div><div class="cell"><div class="code-block">
 </div></div><div class="cell"><div class="prose-block"><h3>Parse interface</h3>
 <p>For types that can be parsed from a <code>String</code>.</p>
@@ -1844,8 +1849,8 @@ Nor does it promise a particular level of precision for numeric values.</p>
 </div></div><div class="cell"><div class="code-block"><span class="keyword">instance</span> <span class="type-name">Parse</span>(<span class="type-name">Float</span>)
   <span class="keyword">def</span> parseString(str) <span class="symbol">=</span> unsafe_io <span class="symbol">\.</span>
     <span class="type-name">AsList</span>(str_len<span class="symbol">,</span> _) <span class="symbol">=</span> str
-    with_c_string str <span class="symbol">\</span>cStr<span class="symbol">.</span>
-      with_alloc 1 <span class="symbol">\</span>end_ptr<span class="symbol">:</span>(<span class="type-name">Ptr</span> (<span class="type-name">Ptr</span> <span class="type-name">Char</span>))<span class="symbol">.</span>
+    <span class="keyword">with</span>_c_string str <span class="symbol">\</span>cStr<span class="symbol">.</span>
+      <span class="keyword">with</span>_alloc 1 <span class="symbol">\</span>end_ptr<span class="symbol">:</span>(<span class="type-name">Ptr</span> (<span class="type-name">Ptr</span> <span class="type-name">Char</span>))<span class="symbol">.</span>
         result <span class="symbol">=</span> strtofFFI(cStr<span class="symbol">.</span>ptr<span class="symbol">,</span> end_ptr<span class="symbol">.</span>val)
         str_end_ptr <span class="symbol">=</span> load end_ptr
         consumed <span class="symbol">=</span> raw_ptr_to_i64 str_end_ptr<span class="symbol">.</span>val <span class="symbol">-</span> raw_ptr_to_i64 cStr<span class="symbol">.</span>ptr
@@ -1887,7 +1892,7 @@ Nor does it promise a particular level of precision for numeric values.</p>
 </div></div><div class="cell"><div class="code-block"><span class="keyword">def</span> from_nullable_raw_ptr(ptr<span class="symbol">:</span><span class="type-name">RawPtr</span>) <span class="symbol">-&gt;</span> <span class="type-name">Maybe</span> (<span class="type-name">Ptr</span> a) <span class="keyword">given</span> (a) <span class="symbol">=</span>
   <span class="keyword">if</span> is_null_raw_ptr ptr
     <span class="keyword">then</span> <span class="type-name">Nothing</span>
-    <span class="keyword">else</span> <span class="type-name">Just</span> <span class="symbol">$</span> <span class="type-name">Ptr</span><span class="symbol">.</span>new ptr
+    <span class="keyword">else</span> <span class="type-name">Just</span> <span class="symbol">$</span> <span class="type-name">Ptr</span> ptr
 </div></div><div class="cell"><div class="code-block">
 </div></div><div class="cell"><div class="code-block"><span class="keyword">def</span> c_string_ptr(s<span class="symbol">:</span><span class="type-name">CString</span>) <span class="symbol">-&gt;</span> <span class="type-name">Maybe</span> (<span class="type-name">Ptr</span> <span class="type-name">Char</span>) <span class="symbol">=</span> from_nullable_raw_ptr s<span class="symbol">.</span>ptr
 </div></div><div class="cell"><div class="code-block">
@@ -1909,9 +1914,9 @@ Nor does it promise a particular level of precision for numeric values.</p>
   modeStr <span class="symbol">=</span> <span class="keyword">case</span> mode <span class="keyword">of</span>
     <span class="type-name">ReadMode</span>  <span class="symbol">-&gt;</span> &quot;r&quot;
     <span class="type-name">WriteMode</span> <span class="symbol">-&gt;</span> &quot;w&quot;
-  with_c_string path <span class="symbol">\</span>cPath<span class="symbol">.</span>
-    with_c_string modeStr <span class="symbol">\</span>cMode<span class="symbol">.</span>
-      <span class="type-name">Stream</span><span class="symbol">.</span>new <span class="symbol">$</span> fopenFFI(cPath<span class="symbol">.</span>ptr<span class="symbol">,</span> cMode<span class="symbol">.</span>ptr)
+  <span class="keyword">with</span>_c_string path <span class="symbol">\</span>cPath<span class="symbol">.</span>
+    <span class="keyword">with</span>_c_string modeStr <span class="symbol">\</span>cMode<span class="symbol">.</span>
+      <span class="type-name">Stream</span> <span class="symbol">$</span> fopenFFI(cPath<span class="symbol">.</span>ptr<span class="symbol">,</span> cMode<span class="symbol">.</span>ptr)
 </div></div><div class="cell"><div class="code-block">
 </div></div><div class="cell"><div class="code-block"><span class="keyword">def</span> fclose(stream<span class="symbol">:</span><span class="type-name">Stream</span> mode) <span class="symbol">-&gt;</span> {<span class="type-name">IO</span>} () <span class="keyword">given</span> (mode) <span class="symbol">=</span>
   fcloseFFI stream<span class="symbol">.</span>ptr
@@ -1919,7 +1924,7 @@ Nor does it promise a particular level of precision for numeric values.</p>
 </div></div><div class="cell"><div class="code-block">
 </div></div><div class="cell"><div class="code-block"><span class="keyword">def</span> fwrite(stream<span class="symbol">:</span><span class="type-name">Stream</span> <span class="type-name">WriteMode</span><span class="symbol">,</span> s<span class="symbol">:</span><span class="type-name">String</span>) <span class="symbol">-&gt;</span> {<span class="type-name">IO</span>} () <span class="symbol">=</span>
   <span class="type-name">AsList</span>(n<span class="symbol">,</span> s&#39;) <span class="symbol">=</span> s
-  with_table_ptr s&#39; <span class="symbol">\</span>ptr<span class="symbol">.</span>
+  <span class="keyword">with</span>_table_ptr s&#39; <span class="symbol">\</span>ptr<span class="symbol">.</span>
     fwriteFFI(ptr<span class="symbol">.</span>val<span class="symbol">,</span> i_to_i64 1<span class="symbol">,</span> n_to_i64 n<span class="symbol">,</span> stream<span class="symbol">.</span>ptr)
   fflushFFI stream<span class="symbol">.</span>ptr
   ()
@@ -1942,7 +1947,7 @@ Nor does it promise a particular level of precision for numeric values.</p>
 </div></div><div class="cell"><div class="code-block"><span class="comment">-- A little iteration combinator
 </span></div></div><div class="cell"><div class="code-block"><span class="keyword">def</span> iter(body<span class="symbol">:</span> (<span class="type-name">Nat</span>) <span class="symbol">-&gt;</span> {<span class="symbol">|</span>eff} <span class="type-name">IterResult</span> a) <span class="symbol">-&gt;</span> {<span class="symbol">|</span>eff} a <span class="keyword">given</span> (a<span class="symbol">|</span><span class="type-name">Data</span><span class="symbol">,</span> eff) <span class="symbol">=</span>
   result <span class="symbol">=</span> yield_state <span class="type-name">Nothing</span> <span class="symbol">\</span>resultRef<span class="symbol">.</span>
-    i <span class="symbol">&lt;-</span> with_state 0
+    i <span class="symbol">&lt;-</span> <span class="keyword">with</span>_state 0
     while <span class="symbol">\.</span>
       continue <span class="symbol">=</span> is_nothing <span class="symbol">$</span> get resultRef
       <span class="keyword">if</span> continue <span class="keyword">then</span>
@@ -1969,7 +1974,7 @@ Nor does it promise a particular level of precision for numeric values.</p>
     <span class="type-name">Nothing</span> <span class="symbol">-&gt;</span> <span class="type-name">Nothing</span>
     <span class="type-name">Just</span>(ptr) <span class="symbol">-&gt;</span>
       <span class="type-name">Just</span> <span class="keyword">do</span>
-        buf <span class="symbol">&lt;-</span> with_dynamic_buffer
+        buf <span class="symbol">&lt;-</span> <span class="keyword">with</span>_dynamic_buffer
         i <span class="symbol">&lt;-</span> iter
         c <span class="symbol">=</span> load <span class="symbol">$</span> ptr <span class="symbol">+&gt;&gt;</span> i
         <span class="keyword">if</span> c <span class="symbol">==</span> &#39;<span class="symbol">\</span><span class="type-name">NUL</span>&#39;
@@ -1981,8 +1986,8 @@ Nor does it promise a particular level of precision for numeric values.</p>
 </div></div><div class="cell"><div class="code-block"><span class="keyword">foreign</span> &quot;getenv&quot; getenvFFI <span class="symbol">:</span> (<span class="type-name">RawPtr</span>) <span class="symbol">-&gt;</span> {<span class="type-name">IO</span>} <span class="type-name">RawPtr</span>
 </div></div><div class="cell"><div class="code-block">
 </div></div><div class="cell"><div class="code-block"><span class="keyword">def</span> get_env(name<span class="symbol">:</span><span class="type-name">String</span>) <span class="symbol">-&gt;</span> {<span class="type-name">IO</span>} <span class="type-name">Maybe</span> <span class="type-name">String</span> <span class="symbol">=</span>
-  cStr <span class="symbol">&lt;-</span> with_c_string name
-  getenvFFI cStr<span class="symbol">.</span>ptr <span class="symbol">|</span> <span class="type-name">CString</span><span class="symbol">.</span>new <span class="symbol">|</span> from_c_string
+  cStr <span class="symbol">&lt;-</span> <span class="keyword">with</span>_c_string name
+  getenvFFI cStr<span class="symbol">.</span>ptr <span class="symbol">|</span> <span class="type-name">CString</span> <span class="symbol">|</span> from_c_string
 </div></div><div class="cell"><div class="code-block">
 </div></div><div class="cell"><div class="code-block"><span class="keyword">def</span> check_env(name<span class="symbol">:</span><span class="type-name">String</span>) <span class="symbol">-&gt;</span> {<span class="type-name">IO</span>} <span class="type-name">Bool</span> <span class="symbol">=</span>
   is_just <span class="symbol">$</span> get_env name
@@ -1991,8 +1996,8 @@ Nor does it promise a particular level of precision for numeric values.</p>
 </div></div><div class="cell"><div class="code-block"><span class="keyword">def</span> fread(stream<span class="symbol">:</span><span class="type-name">Stream</span> <span class="type-name">ReadMode</span>) <span class="symbol">-&gt;</span> {<span class="type-name">IO</span>} <span class="type-name">String</span> <span class="symbol">=</span>
   <span class="comment">-- TODO: allow reading longer files!
 </span>  n <span class="symbol">=</span> 4096
-  ptr<span class="symbol">:</span>(<span class="type-name">Ptr</span> <span class="type-name">Char</span>) <span class="symbol">&lt;-</span> with_alloc n
-  buf <span class="symbol">&lt;-</span> with_dynamic_buffer
+  ptr<span class="symbol">:</span>(<span class="type-name">Ptr</span> <span class="type-name">Char</span>) <span class="symbol">&lt;-</span> <span class="keyword">with</span>_alloc n
+  buf <span class="symbol">&lt;-</span> <span class="keyword">with</span>_dynamic_buffer
   iter <span class="symbol">\</span>_<span class="symbol">.</span>
     numRead <span class="symbol">=</span> i_to_w32 <span class="symbol">$</span> i64_to_i <span class="symbol">$</span> freadFFI(ptr<span class="symbol">.</span>val<span class="symbol">,</span> 1<span class="symbol">,</span> n_to_i64 n<span class="symbol">,</span> stream<span class="symbol">.</span>ptr)
     extend_dynamic_buffer(buf<span class="symbol">,</span> string_from_char_ptr(numRead<span class="symbol">,</span> ptr))
@@ -2003,7 +2008,7 @@ Nor does it promise a particular level of precision for numeric values.</p>
 </div></div><div class="cell"><div class="code-block">
 </div></div><div class="cell"><div class="prose-block"><h3>Print</h3>
 </div></div><div class="cell"><div class="code-block"><span class="keyword">def</span> get_output_stream() <span class="symbol">-&gt;</span> {<span class="type-name">IO</span>} <span class="type-name">Stream</span> <span class="type-name">WriteMode</span> <span class="symbol">=</span>
-  <span class="type-name">Stream</span><span class="symbol">.</span>new <span class="symbol">$</span> %outputStream()
+  <span class="type-name">Stream</span> <span class="symbol">$</span> %outputStream()
 </div></div><div class="cell"><div class="code-block">
 </div></div><div class="cell"><div class="code-block"><span class="symbol">@</span>noinline
 <span class="keyword">def</span> print(s<span class="symbol">:</span><span class="type-name">String</span>) <span class="symbol">-&gt;</span> {<span class="type-name">IO</span>} () <span class="symbol">=</span>
@@ -2019,9 +2024,9 @@ Nor does it promise a particular level of precision for numeric values.</p>
 </div></div><div class="cell"><div class="code-block">
 </div></div><div class="cell"><div class="code-block"><span class="keyword">def</span> shell_out(command<span class="symbol">:</span><span class="type-name">String</span>) <span class="symbol">-&gt;</span> {<span class="type-name">IO</span>} <span class="type-name">String</span> <span class="symbol">=</span>
   modeStr <span class="symbol">=</span> &quot;r&quot;
-  with_c_string command <span class="symbol">\</span>command&#39;<span class="symbol">.</span>
-    with_c_string modeStr <span class="symbol">\</span>modeStr&#39;<span class="symbol">.</span>
-      pipe <span class="symbol">=</span> <span class="type-name">Stream</span><span class="symbol">.</span>new <span class="symbol">$</span> popenFFI(command&#39;<span class="symbol">.</span>ptr<span class="symbol">,</span> modeStr&#39;<span class="symbol">.</span>ptr)
+  <span class="keyword">with</span>_c_string command <span class="symbol">\</span>command&#39;<span class="symbol">.</span>
+    <span class="keyword">with</span>_c_string modeStr <span class="symbol">\</span>modeStr&#39;<span class="symbol">.</span>
+      pipe <span class="symbol">=</span> <span class="type-name">Stream</span> <span class="symbol">$</span> popenFFI(command&#39;<span class="symbol">.</span>ptr<span class="symbol">,</span> modeStr&#39;<span class="symbol">.</span>ptr)
       fread pipe
 </div></div><div class="cell"><div class="code-block">
 </div></div><div class="cell"><div class="prose-block"><h2>Partial functions</h2>
@@ -2038,11 +2043,11 @@ Not to be confused with a partially applied function</p>
 </div></div><div class="cell"><div class="code-block">
 </div></div><div class="cell"><div class="prose-block"><h3>File Operations</h3>
 </div></div><div class="cell"><div class="code-block"><span class="keyword">def</span> delete_file(f<span class="symbol">:</span><span class="type-name">FilePath</span>) <span class="symbol">-&gt;</span> {<span class="type-name">IO</span>} () <span class="symbol">=</span>
-  s <span class="symbol">&lt;-</span> with_c_string(f)
+  s <span class="symbol">&lt;-</span> <span class="keyword">with</span>_c_string(f)
   removeFFI s<span class="symbol">.</span>ptr
   ()
 </div></div><div class="cell"><div class="code-block">
-</div></div><div class="cell"><div class="code-block"><span class="keyword">def</span> with_file(
+</div></div><div class="cell"><div class="code-block"><span class="keyword">def</span> <span class="keyword">with</span>_file(
     f<span class="symbol">:</span><span class="type-name">FilePath</span><span class="symbol">,</span>
     mode<span class="symbol">:</span><span class="type-name">StreamMode</span><span class="symbol">,</span>
     action<span class="symbol">:</span>(<span class="type-name">Stream</span> mode) <span class="symbol">-&gt;</span> {<span class="type-name">IO</span>} a
@@ -2057,10 +2062,10 @@ Not to be confused with a partially applied function</p>
       result
 </div></div><div class="cell"><div class="code-block">
 </div></div><div class="cell"><div class="code-block"><span class="keyword">def</span> write_file(f<span class="symbol">:</span><span class="type-name">FilePath</span><span class="symbol">,</span> s<span class="symbol">:</span><span class="type-name">String</span>) <span class="symbol">-&gt;</span> {<span class="type-name">IO</span>} () <span class="symbol">=</span>
-  with_file(f<span class="symbol">,</span> <span class="type-name">WriteMode</span>) <span class="symbol">\</span>stream<span class="symbol">.</span> fwrite(stream<span class="symbol">,</span> s)
+  <span class="keyword">with</span>_file(f<span class="symbol">,</span> <span class="type-name">WriteMode</span>) <span class="symbol">\</span>stream<span class="symbol">.</span> fwrite(stream<span class="symbol">,</span> s)
 </div></div><div class="cell"><div class="code-block">
 </div></div><div class="cell"><div class="code-block"><span class="keyword">def</span> read_file(f<span class="symbol">:</span><span class="type-name">FilePath</span>) <span class="symbol">-&gt;</span> {<span class="type-name">IO</span>} <span class="type-name">String</span> <span class="symbol">=</span>
-  with_file(f<span class="symbol">,</span> <span class="type-name">ReadMode</span>) <span class="symbol">\</span>stream<span class="symbol">.</span> fread stream
+  <span class="keyword">with</span>_file(f<span class="symbol">,</span> <span class="type-name">ReadMode</span>) <span class="symbol">\</span>stream<span class="symbol">.</span> fread stream
 </div></div><div class="cell"><div class="code-block">
 </div></div><div class="cell"><div class="code-block"><span class="keyword">def</span> has_file(f<span class="symbol">:</span><span class="type-name">FilePath</span>) <span class="symbol">-&gt;</span> {<span class="type-name">IO</span>} <span class="type-name">Bool</span> <span class="symbol">=</span>
   stream <span class="symbol">=</span> fopen(f<span class="symbol">,</span> <span class="type-name">ReadMode</span>)
@@ -2070,18 +2075,18 @@ Not to be confused with a partially applied function</p>
 </div></div><div class="cell"><div class="code-block">
 </div></div><div class="cell"><div class="prose-block"><h3>Temporary Files</h3>
 </div></div><div class="cell"><div class="code-block"><span class="keyword">def</span> new_temp_file() <span class="symbol">-&gt;</span> {<span class="type-name">IO</span>} <span class="type-name">FilePath</span> <span class="symbol">=</span>
-  s <span class="symbol">&lt;-</span> with_c_string &quot;<span class="symbol">/</span>tmp<span class="symbol">/</span>dex<span class="symbol">-</span><span class="type-name">XXXXXX</span>&quot;
+  s <span class="symbol">&lt;-</span> <span class="keyword">with</span>_c_string &quot;<span class="symbol">/</span>tmp<span class="symbol">/</span>dex<span class="symbol">-</span><span class="type-name">XXXXXX</span>&quot;
   fd <span class="symbol">=</span> mkstempFFI s<span class="symbol">.</span>ptr
   closeFFI fd
-  string_from_char_ptr(15<span class="symbol">,</span> (<span class="type-name">Ptr</span><span class="symbol">.</span>new s<span class="symbol">.</span>ptr))
+  string_from_char_ptr(15<span class="symbol">,</span> (<span class="type-name">Ptr</span> s<span class="symbol">.</span>ptr))
 </div></div><div class="cell"><div class="code-block">
-</div></div><div class="cell"><div class="code-block"><span class="keyword">def</span> with_temp_file(action<span class="symbol">:</span> (<span class="type-name">FilePath</span>) <span class="symbol">-&gt;</span> {<span class="type-name">IO</span>} a) <span class="symbol">-&gt;</span> {<span class="type-name">IO</span>} a <span class="keyword">given</span> (a) <span class="symbol">=</span>
+</div></div><div class="cell"><div class="code-block"><span class="keyword">def</span> <span class="keyword">with</span>_temp_file(action<span class="symbol">:</span> (<span class="type-name">FilePath</span>) <span class="symbol">-&gt;</span> {<span class="type-name">IO</span>} a) <span class="symbol">-&gt;</span> {<span class="type-name">IO</span>} a <span class="keyword">given</span> (a) <span class="symbol">=</span>
   tmpFile <span class="symbol">=</span> new_temp_file()
   result <span class="symbol">=</span> action tmpFile
   delete_file tmpFile
   result
 </div></div><div class="cell"><div class="code-block">
-</div></div><div class="cell"><div class="code-block"><span class="keyword">def</span> with_temp_files(action<span class="symbol">:</span> (n<span class="symbol">=&gt;</span><span class="type-name">FilePath</span>) <span class="symbol">-&gt;</span> {<span class="type-name">IO</span>} a) <span class="symbol">-&gt;</span> {<span class="type-name">IO</span>} a <span class="keyword">given</span> (n<span class="symbol">|</span><span class="type-name">Ix</span><span class="symbol">,</span> a) <span class="symbol">=</span>
+</div></div><div class="cell"><div class="code-block"><span class="keyword">def</span> <span class="keyword">with</span>_temp_files(action<span class="symbol">:</span> (n<span class="symbol">=&gt;</span><span class="type-name">FilePath</span>) <span class="symbol">-&gt;</span> {<span class="type-name">IO</span>} a) <span class="symbol">-&gt;</span> {<span class="type-name">IO</span>} a <span class="keyword">given</span> (n<span class="symbol">|</span><span class="type-name">Ix</span><span class="symbol">,</span> a) <span class="symbol">=</span>
   tmpFiles <span class="symbol">=</span> <span class="keyword">for</span> i<span class="symbol">.</span> new_temp_file()
   result <span class="symbol">=</span> action tmpFiles
   <span class="keyword">for</span> i<span class="symbol">.</span> delete_file tmpFiles[i]
@@ -2264,8 +2269,8 @@ Such as <code>rand_mat</code> with samples from the distribution of floating poi
     <span class="keyword">else</span> <span class="keyword">if</span> x <span class="symbol">&lt;</span> xs[from_ordinal 0]
       <span class="keyword">then</span> <span class="type-name">Nothing</span>
       <span class="keyword">else</span>
-        low  <span class="symbol">&lt;-</span> with_state(0)
-        high <span class="symbol">&lt;-</span> with_state(size n)
+        low  <span class="symbol">&lt;-</span> <span class="keyword">with</span>_state(0)
+        high <span class="symbol">&lt;-</span> <span class="keyword">with</span>_state(size n)
         _ <span class="symbol">&lt;-</span> iter
         numLeft <span class="symbol">=</span> n_to_i (get high) <span class="symbol">-</span> n_to_i (get low)
         <span class="keyword">if</span> numLeft <span class="symbol">==</span> 1
@@ -2456,8 +2461,8 @@ Such as <code>rand_mat</code> with samples from the distribution of floating poi
 </span>  <span class="comment">-- This could be nicer if there were a way to explicitly
 </span>  <span class="comment">-- specify which typelcass instance to use for Mul.
 </span>  yield_state one <span class="symbol">\</span>ans<span class="symbol">.</span>
-    pow <span class="symbol">&lt;-</span> with_state power
-    z <span class="symbol">&lt;-</span> with_state base
+    pow <span class="symbol">&lt;-</span> <span class="keyword">with</span>_state power
+    z <span class="symbol">&lt;-</span> <span class="keyword">with</span>_state base
     <span class="keyword">for</span> _<span class="symbol">:</span>(<span class="type-name">Fin</span> iters)<span class="symbol">.</span>
       <span class="keyword">if</span> is_odd (get pow)
         <span class="keyword">then</span> ans <span class="symbol">:=</span> times(get ans<span class="symbol">,</span> get z)
@@ -2492,8 +2497,8 @@ Such as <code>rand_mat</code> with samples from the distribution of floating poi
 </span></div></div><div class="cell"><div class="code-block"><span class="comment">-- TODO: we want this for any monoid but this implementation won&#39;t work.
 </span></div></div><div class="cell"><div class="code-block"><span class="keyword">def</span> concat(lists<span class="command">:n</span><span class="symbol">=&gt;</span>(<span class="type-name">List</span> a)) <span class="symbol">-&gt;</span> <span class="type-name">List</span> a <span class="keyword">given</span> (a<span class="symbol">,</span> n<span class="symbol">|</span><span class="type-name">Ix</span>) <span class="symbol">=</span>
   totalSize <span class="symbol">=</span> sum <span class="keyword">for</span> i<span class="symbol">.</span> list_length lists[i]
-  to_list <span class="symbol">$</span> with_state 0 <span class="symbol">\</span>listIdx<span class="symbol">.</span>
-    eltIdx <span class="symbol">&lt;-</span> with_state 0
+  to_list <span class="symbol">$</span> <span class="keyword">with</span>_state 0 <span class="symbol">\</span>listIdx<span class="symbol">.</span>
+    eltIdx <span class="symbol">&lt;-</span> <span class="keyword">with</span>_state 0
     <span class="keyword">for</span> i<span class="symbol">:</span>(<span class="type-name">Fin</span> totalSize)<span class="symbol">.</span>
       while <span class="symbol">\.</span>
         continue <span class="symbol">=</span> get eltIdx <span class="symbol">&gt;=</span> list_length (lists[(get listIdx)<span class="symbol">@</span>_])
@@ -2512,9 +2517,9 @@ Such as <code>rand_mat</code> with samples from the distribution of floating poi
   (num_res<span class="symbol">,</span> res_inds) <span class="symbol">=</span> yield_state (0<span class="symbol">::</span><span class="type-name">Nat</span><span class="symbol">,</span> <span class="keyword">for</span> i<span class="command">:n</span><span class="symbol">.</span> <span class="type-name">Nothing</span>) <span class="symbol">\</span>ref<span class="symbol">.</span>
     <span class="keyword">for</span> i<span class="symbol">.</span> <span class="keyword">case</span> xs[i] <span class="keyword">of</span>
       <span class="type-name">Just</span>(_) <span class="symbol">-&gt;</span>
-        ix <span class="symbol">=</span> get <span class="symbol">$</span> fst_ref ref
-        (snd_ref ref) <span class="symbol">!</span> (unsafe_from_ordinal ix) <span class="symbol">:=</span> <span class="type-name">Just</span> i
-        fst_ref ref <span class="symbol">:=</span> ix <span class="symbol">+</span> 1
+        ix <span class="symbol">=</span> get ref<span class="symbol">.</span>0
+        ref<span class="symbol">.</span>1 <span class="symbol">!</span> (unsafe_from_ordinal ix) <span class="symbol">:=</span> <span class="type-name">Just</span> i
+        ref<span class="symbol">.</span>0 <span class="symbol">:=</span> ix <span class="symbol">+</span> 1
       <span class="type-name">Nothing</span> <span class="symbol">-&gt;</span> ()
   to_list <span class="symbol">$</span> <span class="keyword">for</span> i<span class="symbol">:</span>(<span class="type-name">Fin</span> num_res)<span class="symbol">.</span>
     <span class="keyword">case</span> res_inds[unsafe_from_ordinal <span class="symbol">$</span> ordinal i] <span class="keyword">of</span>
@@ -2661,80 +2666,82 @@ Such as <code>rand_mat</code> with samples from the distribution of floating poi
 </div></div><div class="cell"><div class="code-block">
 </div></div><div class="cell"><div class="prose-block"><h3>stack</h3>
 <p>-- TODO: replace <code>DynBuffer</code> with this?</p>
-</div></div><div class="cell"><div class="code-block"><span class="keyword">def</span> <span class="type-name">Stack</span>(h<span class="symbol">:</span><span class="type-name">Heap</span><span class="symbol">,</span> a<span class="symbol">|</span><span class="type-name">Data</span>) <span class="symbol">=</span> <span class="type-name">Ref</span>(h<span class="symbol">,</span> (<span class="type-name">Nat</span><span class="symbol">,</span> <span class="type-name">List</span> a))
-</div></div><div class="cell"><div class="code-block">
-</div></div><div class="cell"><div class="code-block"><span class="keyword">def</span> stack_size(stack<span class="symbol">:</span><span class="type-name">Stack</span>(h<span class="symbol">,</span> a)) <span class="symbol">-&gt;</span> {<span class="type-name">State</span> h} <span class="type-name">Nat</span> <span class="keyword">given</span> (h<span class="symbol">,</span> a) <span class="symbol">=</span> get <span class="symbol">$</span> fst_ref stack
-</div></div><div class="cell"><div class="code-block">
-</div></div><div class="cell"><div class="code-block"><span class="keyword">def</span> unsafe_get_stack_buffer(stack<span class="symbol">:</span><span class="type-name">Stack</span>(h<span class="symbol">,</span> a)) <span class="symbol">-&gt;</span> {<span class="type-name">State</span> h} (<span class="type-name">Ref</span>(h<span class="symbol">,</span> <span class="type-name">Fin</span> 0 <span class="symbol">=&gt;</span> a)) <span class="keyword">given</span> (h<span class="symbol">,</span> a<span class="symbol">|</span><span class="type-name">Data</span>) <span class="symbol">=</span>
-  get <span class="symbol">$</span> snd_ref <span class="symbol">$</span> unsafe_coerce(to<span class="symbol">=</span><span class="type-name">Ref</span> h (<span class="type-name">Nat</span><span class="symbol">,</span> <span class="type-name">Ref</span> h (<span class="type-name">Fin</span> 0 <span class="symbol">=&gt;</span> a))<span class="symbol">,</span> snd_ref stack)
-</div></div><div class="cell"><div class="code-block">
-</div></div><div class="cell"><div class="code-block"><span class="keyword">def</span> stack_buf_size(stack<span class="symbol">:</span><span class="type-name">Stack</span>(h<span class="symbol">,</span> a)) <span class="symbol">-&gt;</span> {<span class="type-name">State</span> h} <span class="type-name">Nat</span> <span class="keyword">given</span> (h<span class="symbol">,</span> a<span class="symbol">|</span><span class="type-name">Data</span>) <span class="symbol">=</span>
-  get <span class="symbol">$</span> fst_ref <span class="symbol">$</span> unsafe_coerce(to<span class="symbol">=</span><span class="type-name">Ref</span> h (<span class="type-name">Nat</span><span class="symbol">,</span> <span class="type-name">Ref</span> h (<span class="type-name">Fin</span> 0 <span class="symbol">=&gt;</span> a))<span class="symbol">,</span> snd_ref stack)
-</div></div><div class="cell"><div class="code-block">
-</div></div><div class="cell"><div class="code-block"><span class="keyword">def</span> ensure_size_at_least(stack<span class="symbol">:</span><span class="type-name">Stack</span>(h<span class="symbol">,</span> a)<span class="symbol">,</span> req_size<span class="symbol">:</span><span class="type-name">Nat</span>) <span class="symbol">-&gt;</span> {<span class="type-name">State</span> h} () <span class="keyword">given</span> (h<span class="symbol">,</span> a<span class="symbol">|</span><span class="type-name">Data</span>) <span class="symbol">=</span>
-  <span class="keyword">if</span> req_size <span class="symbol">&gt;</span> stack_buf_size stack <span class="keyword">then</span>
-    <span class="comment">-- TODO: maybe this should use integer arithmetic?
-</span>    new_buf_size <span class="symbol">=</span> f_to_n <span class="symbol">$</span> 2<span class="symbol">.</span>0 `pow` (ceil <span class="symbol">$</span> log2 <span class="symbol">$</span> n_to_f req_size)
-    buf <span class="symbol">=</span> unsafe_get_stack_buffer stack
-    logical_size <span class="symbol">=</span> stack_size stack
-    cur_<span class="keyword">data</span> <span class="symbol">=</span> get <span class="symbol">$</span> unsafe_coerce(to<span class="symbol">=</span><span class="type-name">Ref</span>(h<span class="symbol">,</span> <span class="type-name">Fin</span> logical_size <span class="symbol">=&gt;</span> a)<span class="symbol">,</span> buf)
-    snd_ref stack <span class="symbol">:=</span> to_list <span class="keyword">for</span> i<span class="symbol">:</span>(<span class="type-name">Fin</span> new_buf_size)<span class="symbol">.</span>
-      <span class="keyword">case</span> to_ix(n<span class="symbol">=</span><span class="type-name">Fin</span> logical_size<span class="symbol">,</span> ordinal i) <span class="keyword">of</span>
-        <span class="type-name">Just</span>(i&#39;) <span class="symbol">-&gt;</span> cur_<span class="keyword">data</span>[i&#39;]
-        <span class="type-name">Nothing</span>  <span class="symbol">-&gt;</span> uninitialized_value()
-</div></div><div class="cell"><div class="code-block">
-</div></div><div class="cell"><div class="code-block"><span class="keyword">def</span> read_stack(stack<span class="symbol">:</span><span class="type-name">Stack</span>(h<span class="symbol">,</span> a)) <span class="symbol">-&gt;</span> {<span class="type-name">State</span> h} (<span class="type-name">List</span> a) <span class="keyword">given</span> (h<span class="symbol">,</span> a<span class="symbol">|</span><span class="type-name">Data</span>) <span class="symbol">=</span>
-  n <span class="symbol">=</span> stack_size stack
-  buf <span class="symbol">=</span> unsafe_coerce(to<span class="symbol">=</span><span class="type-name">Ref</span>(h<span class="symbol">,</span> <span class="type-name">Fin</span> n <span class="symbol">=&gt;</span> a)<span class="symbol">,</span> unsafe_get_stack_buffer stack)
-  <span class="type-name">AsList</span>(n<span class="symbol">,</span> get buf)
-</div></div><div class="cell"><div class="code-block">
-</div></div><div class="cell"><div class="code-block"><span class="symbol">@</span>noinline
-<span class="keyword">def</span> stack_push(stack<span class="symbol">:</span><span class="type-name">Stack</span>(h<span class="symbol">,</span> a)<span class="symbol">,</span> x<span class="command">:a</span>) <span class="symbol">-&gt;</span> {<span class="type-name">State</span> h} () <span class="keyword">given</span> (a<span class="symbol">|</span><span class="type-name">Data</span><span class="symbol">,</span> h) <span class="symbol">=</span>
-  n_old <span class="symbol">=</span> stack_size stack
-  n_new <span class="symbol">=</span> n_old <span class="symbol">+</span> 1
-  ensure_size_at_least(stack<span class="symbol">,</span> n_new)
-  buf <span class="symbol">=</span> unsafe_get_stack_buffer stack
-  buf <span class="symbol">!</span> (unsafe_from_ordinal n_old) <span class="symbol">:=</span> x
-  fst_ref stack <span class="symbol">:=</span> n_new
-</div></div><div class="cell"><div class="code-block">
-</div></div><div class="cell"><div class="code-block"><span class="symbol">@</span>noinline
-<span class="keyword">def</span> stack_extend(stack<span class="symbol">:</span><span class="type-name">Stack</span>(h<span class="symbol">,</span> a)<span class="symbol">,</span> x<span class="command">:n</span><span class="symbol">=&gt;</span>a) <span class="symbol">-&gt;</span> {<span class="type-name">State</span> h} () <span class="keyword">given</span> (a<span class="symbol">|</span><span class="type-name">Data</span><span class="symbol">,</span> n<span class="symbol">|</span><span class="type-name">Ix</span><span class="symbol">,</span> h) <span class="symbol">=</span>
-  n_old <span class="symbol">=</span> stack_size stack
-  n_new <span class="symbol">=</span> n_old <span class="symbol">+</span> size n
-  ensure_size_at_least(stack<span class="symbol">,</span> n_new)
-  buf <span class="symbol">=</span> unsafe_get_stack_buffer stack
-  buf_slice <span class="symbol">=</span> unsafe_coerce(to<span class="symbol">=</span><span class="type-name">Ref</span>(h<span class="symbol">,</span>n<span class="symbol">=&gt;</span>a)<span class="symbol">,</span> buf <span class="symbol">!</span> (unsafe_from_ordinal n_old))
-  buf_slice <span class="symbol">:=</span> x
-  fst_ref stack <span class="symbol">:=</span> n_new
-</div></div><div class="cell"><div class="code-block">
-</div></div><div class="cell"><div class="code-block"><span class="keyword">def</span> stack_pop(stack<span class="symbol">:</span><span class="type-name">Stack</span>(h<span class="symbol">,</span> a)) <span class="symbol">-&gt;</span> {<span class="type-name">State</span> h} <span class="type-name">Maybe</span> a <span class="keyword">given</span> (a<span class="symbol">|</span><span class="type-name">Data</span><span class="symbol">,</span> h) <span class="symbol">=</span>
-  n_old <span class="symbol">=</span> stack_size stack
-  <span class="keyword">case</span> n_old <span class="symbol">==</span> 0 <span class="keyword">of</span>
-    <span class="type-name">True</span> <span class="symbol">-&gt;</span> <span class="type-name">Nothing</span>
-    <span class="type-name">False</span> <span class="symbol">-&gt;</span>
-      n_new <span class="symbol">=</span> unsafe_nat_diff(n_old<span class="symbol">,</span> 1)
-      buf <span class="symbol">=</span> unsafe_get_stack_buffer stack
-      fst_ref stack <span class="symbol">:=</span> n_new
-      <span class="type-name">Just</span> <span class="symbol">$</span> get buf<span class="symbol">!</span>(unsafe_from_ordinal n_new)
+</div></div><div class="cell"><div class="code-block"><span class="keyword">struct</span> <span class="type-name">Stack</span>(h<span class="symbol">:</span><span class="type-name">Heap</span><span class="symbol">,</span> a<span class="symbol">|</span><span class="type-name">Data</span>) <span class="symbol">=</span>
+  size_ref <span class="symbol">:</span> <span class="type-name">Ref</span> h <span class="type-name">Nat</span>
+  buf_ref  <span class="symbol">:</span> <span class="type-name">Ref</span> h (<span class="type-name">List</span> a)
+
+  <span class="keyword">def</span> size() <span class="symbol">-&gt;</span> {<span class="type-name">State</span> h} <span class="type-name">Nat</span> <span class="symbol">=</span> get self<span class="symbol">.</span>size_ref
+
+  <span class="keyword">def</span> unsafe_get_buffer() <span class="symbol">-&gt;</span> {<span class="type-name">State</span> h} (<span class="type-name">Ref</span>(h<span class="symbol">,</span> <span class="type-name">Fin</span> 0 <span class="symbol">=&gt;</span> a)) <span class="symbol">=</span>
+    get <span class="symbol">$</span> snd_ref <span class="symbol">$</span> unsafe_coerce(to<span class="symbol">=</span><span class="type-name">Ref</span> h (<span class="type-name">Nat</span><span class="symbol">,</span> <span class="type-name">Ref</span> h (<span class="type-name">Fin</span> 0 <span class="symbol">=&gt;</span> a))<span class="symbol">,</span> self<span class="symbol">.</span>buf_ref)
+
+  <span class="keyword">def</span> buf_size() <span class="symbol">-&gt;</span> {<span class="type-name">State</span> h} <span class="type-name">Nat</span> <span class="symbol">=</span>
+    get <span class="symbol">$</span> fst_ref <span class="symbol">$</span> unsafe_coerce(to<span class="symbol">=</span><span class="type-name">Ref</span> h (<span class="type-name">Nat</span><span class="symbol">,</span> <span class="type-name">Ref</span> h (<span class="type-name">Fin</span> 0 <span class="symbol">=&gt;</span> a))<span class="symbol">,</span> self<span class="symbol">.</span>buf_ref)
+
+  <span class="keyword">def</span> ensure_size_at_least(req_size<span class="symbol">:</span><span class="type-name">Nat</span>) <span class="symbol">-&gt;</span> {<span class="type-name">State</span> h} () <span class="symbol">=</span>
+    <span class="keyword">if</span> req_size <span class="symbol">&gt;</span> self<span class="symbol">.</span>buf_size() <span class="keyword">then</span>
+      <span class="comment">-- TODO: maybe this should use integer arithmetic?
+</span>      new_buf_size <span class="symbol">=</span> f_to_n <span class="symbol">$</span> 2<span class="symbol">.</span>0 `pow` (ceil <span class="symbol">$</span> log2 <span class="symbol">$</span> n_to_f req_size)
+      buf <span class="symbol">=</span> self<span class="symbol">.</span>unsafe_get_buffer()
+      logical_size <span class="symbol">=</span> self<span class="symbol">.</span>size()
+      cur_<span class="keyword">data</span> <span class="symbol">=</span> get <span class="symbol">$</span> unsafe_coerce(to<span class="symbol">=</span><span class="type-name">Ref</span>(h<span class="symbol">,</span> <span class="type-name">Fin</span> logical_size <span class="symbol">=&gt;</span> a)<span class="symbol">,</span> buf)
+      self<span class="symbol">.</span>buf_ref <span class="symbol">:=</span> to_list <span class="keyword">for</span> i<span class="symbol">:</span>(<span class="type-name">Fin</span> new_buf_size)<span class="symbol">.</span>
+        <span class="keyword">case</span> to_ix(n<span class="symbol">=</span><span class="type-name">Fin</span> logical_size<span class="symbol">,</span> ordinal i) <span class="keyword">of</span>
+          <span class="type-name">Just</span>(i&#39;) <span class="symbol">-&gt;</span> cur_<span class="keyword">data</span>[i&#39;]
+          <span class="type-name">Nothing</span>  <span class="symbol">-&gt;</span> uninitialized_value()
+
+  <span class="keyword">def</span> read() <span class="symbol">-&gt;</span> {<span class="type-name">State</span> h} (<span class="type-name">List</span> a) <span class="symbol">=</span>
+    n <span class="symbol">=</span> self<span class="symbol">.</span>size()
+    buf <span class="symbol">=</span> unsafe_coerce(to<span class="symbol">=</span><span class="type-name">Ref</span>(h<span class="symbol">,</span> <span class="type-name">Fin</span> n <span class="symbol">=&gt;</span> a)<span class="symbol">,</span> self<span class="symbol">.</span>unsafe_get_buffer())
+    <span class="type-name">AsList</span>(n<span class="symbol">,</span> get buf)
+
+  <span class="symbol">@</span>noinline
+  <span class="keyword">def</span> push(x<span class="command">:a</span>) <span class="symbol">-&gt;</span> {<span class="type-name">State</span> h} () <span class="symbol">=</span>
+    n_old <span class="symbol">=</span> self<span class="symbol">.</span>size()
+    n_new <span class="symbol">=</span> n_old <span class="symbol">+</span> 1
+    self<span class="symbol">.</span>ensure_size_at_least(n_new)
+    buf <span class="symbol">=</span> self<span class="symbol">.</span>unsafe_get_buffer()
+    buf <span class="symbol">!</span> (unsafe_from_ordinal n_old) <span class="symbol">:=</span> x
+    self<span class="symbol">.</span>size_ref <span class="symbol">:=</span> n_new
+
+  <span class="symbol">@</span>noinline
+  <span class="keyword">def</span> extend(x<span class="command">:n</span><span class="symbol">=&gt;</span>a) <span class="symbol">-&gt;</span> {<span class="type-name">State</span> h} () <span class="keyword">given</span> (n<span class="symbol">|</span><span class="type-name">Ix</span>) <span class="symbol">=</span>
+    n_old <span class="symbol">=</span> self<span class="symbol">.</span>size()
+    n_new <span class="symbol">=</span> n_old <span class="symbol">+</span> size n
+    self<span class="symbol">.</span>ensure_size_at_least(n_new)
+    buf <span class="symbol">=</span> self<span class="symbol">.</span>unsafe_get_buffer()
+    buf_slice <span class="symbol">=</span> unsafe_coerce(to<span class="symbol">=</span><span class="type-name">Ref</span>(h<span class="symbol">,</span>n<span class="symbol">=&gt;</span>a)<span class="symbol">,</span> buf <span class="symbol">!</span> (unsafe_from_ordinal n_old))
+    buf_slice <span class="symbol">:=</span> x
+    self<span class="symbol">.</span>size_ref <span class="symbol">:=</span> n_new
+
+  <span class="keyword">def</span> pop() <span class="symbol">-&gt;</span> {<span class="type-name">State</span> h} <span class="type-name">Maybe</span> a <span class="symbol">=</span>
+    n_old <span class="symbol">=</span> self<span class="symbol">.</span>size()
+    <span class="keyword">case</span> n_old <span class="symbol">==</span> 0 <span class="keyword">of</span>
+      <span class="type-name">True</span> <span class="symbol">-&gt;</span> <span class="type-name">Nothing</span>
+      <span class="type-name">False</span> <span class="symbol">-&gt;</span>
+        n_new <span class="symbol">=</span> unsafe_nat_diff(n_old<span class="symbol">,</span> 1)
+        buf <span class="symbol">=</span> self<span class="symbol">.</span>unsafe_get_buffer()
+        self<span class="symbol">.</span>size_ref <span class="symbol">:=</span> n_new
+        <span class="type-name">Just</span> <span class="symbol">$</span> get buf<span class="symbol">!</span>(unsafe_from_ordinal n_new)
 </div></div><div class="cell"><div class="code-block">
 </div></div><div class="cell"><div class="code-block">stack_init_size <span class="symbol">=</span> 16
-</div></div><div class="cell"><div class="code-block"><span class="keyword">def</span> with_stack(
+</div></div><div class="cell"><div class="code-block"><span class="keyword">def</span> <span class="keyword">with</span>_stack(
     a<span class="symbol">|</span><span class="type-name">Data</span><span class="symbol">,</span>
     action<span class="symbol">:</span>(<span class="keyword">given</span> (h<span class="symbol">:</span><span class="type-name">Heap</span>)<span class="symbol">,</span> <span class="type-name">Stack</span>(h<span class="symbol">,</span> a)) <span class="symbol">-&gt;</span> {<span class="type-name">State</span> h<span class="symbol">|</span>eff} r
     ) <span class="symbol">-&gt;</span> {<span class="symbol">|</span>eff} r  <span class="keyword">given</span> (eff<span class="symbol">,</span> r) <span class="symbol">=</span>
   init_stack <span class="symbol">=</span> to_list <span class="keyword">for</span> i<span class="symbol">:</span>(<span class="type-name">Fin</span> stack_init_size)<span class="symbol">.</span> uninitialized_value()
-  with_state (0<span class="symbol">,</span> init_stack) <span class="symbol">\</span>ref <span class="symbol">.</span> action ref
+  <span class="keyword">with</span>_state (0<span class="symbol">,</span> init_stack) <span class="symbol">\</span>ref <span class="symbol">.</span> action(<span class="type-name">Stack</span>(ref<span class="symbol">.</span>0<span class="symbol">,</span> ref<span class="symbol">.</span>1))
 </div></div><div class="cell"><div class="code-block">
 </div></div><div class="cell"><div class="code-block"><span class="keyword">def</span> stack_extend_internal(stack<span class="symbol">:</span><span class="type-name">Stack</span>(h<span class="symbol">,</span> <span class="type-name">Char</span>)<span class="symbol">,</span> x<span class="symbol">:</span><span class="type-name">Fin</span> n<span class="symbol">=&gt;</span><span class="type-name">Char</span>) <span class="symbol">-&gt;</span> {<span class="type-name">State</span> h} () <span class="keyword">given</span> (n<span class="symbol">,</span> h) <span class="symbol">=</span>
-  stack_extend(stack<span class="symbol">,</span> x)
+  stack<span class="symbol">.</span>extend(x)
 </div></div><div class="cell"><div class="code-block">
 </div></div><div class="cell"><div class="code-block"><span class="keyword">def</span> stack_push_internal(stack<span class="symbol">:</span><span class="type-name">Stack</span>(h<span class="symbol">,</span> <span class="type-name">Char</span>)<span class="symbol">,</span> x<span class="symbol">:</span><span class="type-name">Char</span>) <span class="symbol">-&gt;</span> {<span class="type-name">State</span> h} () <span class="keyword">given</span> (h) <span class="symbol">=</span>
-  stack_push(stack<span class="symbol">,</span> x)
+  stack<span class="symbol">.</span>push(x)
 </div></div><div class="cell"><div class="code-block">
-</div></div><div class="cell"><div class="code-block"><span class="keyword">def</span> with_stack_internal(f<span class="symbol">:</span>(<span class="keyword">given</span> (h<span class="symbol">:</span><span class="type-name">Heap</span>)<span class="symbol">,</span> <span class="type-name">Stack</span>(h<span class="symbol">,</span> <span class="type-name">Char</span>)) <span class="symbol">-&gt;</span> {<span class="type-name">State</span> h} ()) <span class="symbol">-&gt;</span> <span class="type-name">List</span> <span class="type-name">Char</span> <span class="symbol">=</span>
-  with_stack <span class="type-name">Char</span> <span class="symbol">\</span>stack<span class="symbol">.</span>
+</div></div><div class="cell"><div class="code-block"><span class="keyword">def</span> <span class="keyword">with</span>_stack_internal(f<span class="symbol">:</span>(<span class="keyword">given</span> (h<span class="symbol">:</span><span class="type-name">Heap</span>)<span class="symbol">,</span> <span class="type-name">Stack</span>(h<span class="symbol">,</span> <span class="type-name">Char</span>)) <span class="symbol">-&gt;</span> {<span class="type-name">State</span> h} ()) <span class="symbol">-&gt;</span> <span class="type-name">List</span> <span class="type-name">Char</span> <span class="symbol">=</span>
+  <span class="keyword">with</span>_stack <span class="type-name">Char</span> <span class="symbol">\</span>stack<span class="symbol">.</span>
     f stack
-    read_stack stack
+    stack<span class="symbol">.</span>read()
 </div></div><div class="cell"><div class="code-block">
 </div></div><div class="cell"><div class="code-block"><span class="keyword">def</span> show_any(x<span class="command">:a</span>) <span class="symbol">-&gt;</span> <span class="type-name">String</span> <span class="keyword">given</span> (a) <span class="symbol">=</span> unsafe_coerce(to<span class="symbol">=</span><span class="type-name">String</span><span class="symbol">,</span> %showAny(x))
 </div></div><div class="cell"><div class="code-block">
@@ -2764,7 +2771,7 @@ Such as <code>rand_mat</code> with samples from the distribution of floating poi
 </div></div><div class="cell"><div class="code-block"><span class="keyword">instance</span> <span class="type-name">Ix</span>(<span class="type-name">FullTileIx</span>(n<span class="symbol">,</span> tile_size<span class="symbol">,</span> tile_ix)) <span class="keyword">given</span> (n<span class="symbol">|</span><span class="type-name">Ix</span><span class="symbol">,</span> tile_size<span class="symbol">:</span><span class="type-name">Nat</span><span class="symbol">,</span> tile_ix<span class="symbol">:</span><span class="type-name">Nat</span>)
   <span class="keyword">def</span> size&#39;() <span class="symbol">=</span> tile_size
   <span class="keyword">def</span> ordinal(i)  <span class="symbol">=</span> ordinal i<span class="symbol">.</span>unwrap
-  <span class="keyword">def</span> unsafe_from_ordinal(i) <span class="symbol">=</span><span class="type-name">FullTileIx</span><span class="symbol">.</span>new <span class="symbol">$</span> unsafe_from_ordinal i
+  <span class="keyword">def</span> unsafe_from_ordinal(i) <span class="symbol">=</span> <span class="type-name">FullTileIx</span> <span class="symbol">$</span> unsafe_from_ordinal i
 </div></div><div class="cell"><div class="code-block">
 </div></div><div class="cell"><div class="code-block"><span class="keyword">instance</span> <span class="type-name">Subset</span>(<span class="type-name">FullTileIx</span>(n<span class="symbol">,</span> tile_size<span class="symbol">,</span> tile_ix)<span class="symbol">,</span> n) <span class="keyword">given</span> (n<span class="symbol">|</span><span class="type-name">Ix</span><span class="symbol">,</span> tile_size<span class="symbol">:</span><span class="type-name">Nat</span><span class="symbol">,</span> tile_ix<span class="symbol">:</span><span class="type-name">Nat</span>)
   <span class="keyword">def</span> inject&#39;(i) <span class="symbol">=</span> unsafe_from_ordinal <span class="symbol">$</span> tile_size <span class="symbol">*</span> tile_ix <span class="symbol">+</span> ordinal i<span class="symbol">.</span>unwrap
@@ -2780,7 +2787,7 @@ Such as <code>rand_mat</code> with samples from the distribution of floating poi
 </div></div><div class="cell"><div class="code-block"><span class="keyword">instance</span> <span class="type-name">Ix</span>(<span class="type-name">CodaIx</span>(n<span class="symbol">,</span> coda_offset<span class="symbol">,</span> coda_size)) <span class="keyword">given</span> (n<span class="symbol">|</span><span class="type-name">Ix</span><span class="symbol">,</span> coda_offset<span class="symbol">:</span><span class="type-name">Nat</span><span class="symbol">,</span> coda_size<span class="symbol">:</span><span class="type-name">Nat</span>)
   <span class="keyword">def</span> size&#39;() <span class="symbol">=</span> coda_size
   <span class="keyword">def</span> ordinal(i) <span class="symbol">=</span> ordinal i<span class="symbol">.</span>unwrap
-  <span class="keyword">def</span> unsafe_from_ordinal(i) <span class="symbol">=</span> <span class="type-name">CodaIx</span><span class="symbol">.</span>new <span class="symbol">$</span> unsafe_from_ordinal i
+  <span class="keyword">def</span> unsafe_from_ordinal(i) <span class="symbol">=</span> <span class="type-name">CodaIx</span> <span class="symbol">$</span> unsafe_from_ordinal i
 </div></div><div class="cell"><div class="code-block">
 </div></div><div class="cell"><div class="code-block"><span class="keyword">instance</span> <span class="type-name">Subset</span>(<span class="type-name">CodaIx</span>(n<span class="symbol">,</span> coda_offset<span class="symbol">,</span> coda_size)<span class="symbol">,</span> n) <span class="keyword">given</span> (n<span class="symbol">|</span><span class="type-name">Ix</span><span class="symbol">,</span> coda_offset<span class="symbol">:</span><span class="type-name">Nat</span><span class="symbol">,</span> coda_size<span class="symbol">:</span><span class="type-name">Nat</span>)
   <span class="keyword">def</span> inject&#39;(i) <span class="symbol">=</span> unsafe_from_ordinal <span class="symbol">$</span> coda_offset <span class="symbol">+</span> ordinal i<span class="symbol">.</span>unwrap
@@ -2800,8 +2807,8 @@ Such as <code>rand_mat</code> with samples from the distribution of floating poi
     body (<span class="type-name">FullTileIx</span>(n<span class="symbol">,</span> tile_size<span class="symbol">,</span> tile_ix&#39;))
   body (<span class="type-name">CodaIx</span>(n<span class="symbol">,</span> coda_offset<span class="symbol">,</span> coda_size))
 </div></div><div class="cell"><div class="code-block">
-</div></div><div class="cell"><div class="code-block"><span class="comment">-- matmul. Better symbol to use? `@`?
-</span></div></div><div class="cell"><div class="code-block"><span class="keyword">def</span> (<span class="symbol">**</span>)(
+</div></div><div class="cell"><div class="code-block"><span class="symbol">@</span>noinline
+<span class="keyword">def</span> tiled_matmul(
     x<span class="symbol">:</span> l<span class="symbol">=&gt;</span>m<span class="symbol">=&gt;</span><span class="type-name">Float</span><span class="symbol">,</span>
     y<span class="symbol">:</span> m<span class="symbol">=&gt;</span>n<span class="symbol">=&gt;</span><span class="type-name">Float</span>
     ) <span class="symbol">-&gt;</span> l<span class="symbol">=&gt;</span>n<span class="symbol">=&gt;</span><span class="type-name">Float</span>  <span class="keyword">given</span> (l<span class="symbol">|</span><span class="type-name">Ix</span><span class="symbol">,</span> m<span class="symbol">|</span><span class="type-name">Ix</span><span class="symbol">,</span> n<span class="symbol">|</span><span class="type-name">Ix</span>) <span class="symbol">=</span>
@@ -2820,6 +2827,23 @@ Such as <code>rand_mat</code> with samples from the distribution of floating poi
               <span class="keyword">for</span>_ m_offset<span class="command">:m</span>_set<span class="symbol">.</span>
                 m_ix <span class="symbol">=</span> inject m_offset
                 result<span class="symbol">!</span>l_ix<span class="symbol">!</span>n_ix <span class="symbol">+=</span> x[l_ix<span class="symbol">,</span>m_ix] <span class="symbol">*</span> y[m_ix<span class="symbol">,</span>n_ix]
+</div></div><div class="cell"><div class="code-block">
+</div></div><div class="cell"><div class="code-block"><span class="comment">-- matmul. Better symbol to use? `@`?
+</span></div></div><div class="cell"><div class="code-block"><span class="keyword">def</span> (<span class="symbol">**</span>)(
+    x<span class="symbol">:</span> l<span class="symbol">=&gt;</span>m<span class="symbol">=&gt;</span><span class="type-name">Float</span><span class="symbol">,</span>
+    y<span class="symbol">:</span> m<span class="symbol">=&gt;</span>n<span class="symbol">=&gt;</span><span class="type-name">Float</span>
+    ) <span class="symbol">-&gt;</span> l<span class="symbol">=&gt;</span>n<span class="symbol">=&gt;</span><span class="type-name">Float</span>  <span class="keyword">given</span> (l<span class="symbol">|</span><span class="type-name">Ix</span><span class="symbol">,</span> m<span class="symbol">|</span><span class="type-name">Ix</span><span class="symbol">,</span> n<span class="symbol">|</span><span class="type-name">Ix</span>) <span class="symbol">=</span>
+  tiled_matmul(x<span class="symbol">,</span> y)
+</div></div><div class="cell"><div class="code-block">
+</div></div><div class="cell"><div class="code-block"><span class="keyword">def</span> matmul_linearization(
+    x<span class="symbol">:</span> l<span class="symbol">=&gt;</span>m<span class="symbol">=&gt;</span><span class="type-name">Float</span><span class="symbol">,</span>
+    y<span class="symbol">:</span> m<span class="symbol">=&gt;</span>n<span class="symbol">=&gt;</span><span class="type-name">Float</span>
+    ) <span class="symbol">-&gt;</span> _ <span class="keyword">given</span> (l<span class="symbol">|</span><span class="type-name">Ix</span><span class="symbol">,</span> m<span class="symbol">|</span><span class="type-name">Ix</span><span class="symbol">,</span> n<span class="symbol">|</span><span class="type-name">Ix</span>) <span class="symbol">=</span>
+  <span class="keyword">def</span> lin(xt<span class="symbol">:</span> l<span class="symbol">=&gt;</span>m<span class="symbol">=&gt;</span><span class="type-name">Float</span><span class="symbol">,</span> yt<span class="symbol">:</span> m<span class="symbol">=&gt;</span>n<span class="symbol">=&gt;</span><span class="type-name">Float</span>) <span class="symbol">-&gt;</span> _ <span class="symbol">=</span>
+    x <span class="symbol">**</span> yt <span class="symbol">+</span> xt <span class="symbol">**</span> y
+  (x <span class="symbol">**</span> y<span class="symbol">,</span> lin)
+</div></div><div class="cell"><div class="code-block">
+</div></div><div class="cell"><div class="code-block">custom<span class="symbol">-</span>linearization tiled_matmul matmul_linearization
 </div></div><div class="cell"><div class="code-block">
 </div></div><div class="cell"><div class="code-block"><span class="keyword">def</span> (<span class="symbol">**.</span>)(mat<span class="symbol">:</span> n<span class="symbol">=&gt;</span>m<span class="symbol">=&gt;</span><span class="type-name">Float</span><span class="symbol">,</span> v<span class="symbol">:</span> m<span class="symbol">=&gt;</span><span class="type-name">Float</span>) <span class="symbol">-&gt;</span> (n<span class="symbol">=&gt;</span><span class="type-name">Float</span>) <span class="keyword">given</span> (n<span class="symbol">|</span><span class="type-name">Ix</span><span class="symbol">,</span> m<span class="symbol">|</span><span class="type-name">Ix</span>) <span class="symbol">=</span>
   <span class="keyword">for</span> i<span class="symbol">.</span> vdot(mat[i]<span class="symbol">,</span> v)
